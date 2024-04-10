@@ -140,11 +140,6 @@ class Controller extends Observer {
   unobserve(hls) {
     this.hls.splice(this.hls.indexOf(hls), 1);
     this.notifyUpdated('duration', this.duration);
-
-    // when HLS are removed and no more are remaining, end
-    // if (this.hls.length === 0) {
-    //   this.end();
-    // }
   }
 
   /**
@@ -189,13 +184,14 @@ class Controller extends Observer {
     if (this.tTick) this.untick();
 
     // Detect if we're reached the end
-    if (this.currentTime > this.duration) return this.end();
+    if (!this.loop && this.rawCurrentTime > this.duration) {
+      return this.end();
+    }
 
-    // if (this.currentTime + 1 > this.duration) {
-    // this.startOffset += this.duration;
-    // console.log(this.startOffset);
-    // this.fixAdjustedStart(0, this.adjustedStart + this.duration);
-    // }
+    // if we're in the next loop, forward the adjusted start one whole cycle so that we're back
+    if (this.nLoop > 0) {
+      this.adjustedStart += this.duration;
+    }
 
     this.fireEvent('timeupdate', {
       t: this.currentTime,
@@ -303,11 +299,14 @@ class Controller extends Observer {
    * @returns {Integer|undefined} - The index of the loop
    */
   get nLoop() {
-    let t = this.adjustedStart !== undefined ? this.ac.currentTime - this.adjustedStart : undefined;
+    return Math.floor(this.rawCurrentTime / this.duration);
+  }
 
-    t /= this.duration;
-
-    return Math.floor(t);
+  /**
+   * @returns {Integer|undefined} - The current time, in seconds.
+   */
+  get currentTime() {
+    return this.rawCurrentTime % this.duration;
   }
 
   /**
@@ -330,14 +329,10 @@ class Controller extends Observer {
   }
 
   /**
-   * @returns {Integer|undefined} - The current time, in seconds.
+   * @returns {Integer|undefined} - The current time, in seconds, without taking loop into consideration
    */
-  get currentTime() {
-    let t = this.adjustedStart !== undefined ? this.ac.currentTime - this.adjustedStart : undefined;
-
-    if (this.loop) t %= this.duration;
-
-    return t;
+  get rawCurrentTime() {
+    return this.adjustedStart !== undefined ? this.ac.currentTime - this.adjustedStart : undefined;
   }
 
   /**
@@ -392,17 +387,15 @@ class Controller extends Observer {
 
     let realStart = adjustedStart + start;
 
-    if (this.loop) {
-      let { nLoop } = this;
+    let { nLoop } = this;
 
-      // a segment has this property if it is being pre-loaded for playback in the near future
-      // this means that _at that time_ nLoop is still less than what it will be when playback
-      // for that segment commences - so we need to increase it
-      if (isInNextLoop) nLoop += 1;
+    // a segment has this property if it is being pre-loaded for playback in the near future
+    // this means that _at that time_ nLoop is still less than what it will be when playback
+    // for that segment commences - so we need to increase it
+    if (isInNextLoop) nLoop += 1;
 
-      // when looping we need to take the number of loops into consideration when calculating start time
-      realStart += nLoop * this.duration;
-    }
+    // when looping we need to take the number of loops into consideration when calculating start time
+    realStart += nLoop * this.duration;
 
     if (realStart < 0) realStart = 0;
 
