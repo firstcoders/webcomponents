@@ -174,15 +174,33 @@ class HLS {
    * @param {Array} sources - An array containing the segment data
    */
   buildSegments(sources) {
-    this.stack?.push(
-      ...sources.map((source) => new Segment({ ...source, fetchOptions: this.fetchOptions })),
-    );
+    const segments = [];
 
-    // const [first] = this.stack.elements;
+    sources.forEach((source) => {
+      segments.push(
+        new Segment({
+          ...source,
+          fetchOptions: this.fetchOptions,
+        }),
+      );
+    });
 
-    // const virtual = new Segment({ src: first.src, duration: first.duration });
-    // virtual.$isVirtual = true;
-    // this.stack?.push(virtual);
+    // create a linked list
+    segments.forEach((segment, index) => {
+      segment.previous = segments[index - 1];
+      segment.next = segments[index + 1];
+
+      if (index === 0) {
+        segment.previous = segments[segments.length - 1];
+      }
+
+      if (index === segments.length - 1) {
+        // eslint-disable-next-line prefer-destructuring
+        segment.next = segments[0];
+      }
+    });
+
+    this.stack?.push(...segments);
   }
 
   set duration(duration) {
@@ -250,6 +268,9 @@ class HLS {
     // get the next segment
     const segment = this.stack.consume();
 
+    // is the element to be scheduled the first element in the next loop?
+    const isInNextLoop = segment === this.stack.next && segment === this.stack.elements[0];
+
     // if we dont get one, there's nothing to do at this time
     if (!segment) return;
 
@@ -262,7 +283,7 @@ class HLS {
 
       // connect it to the audio
       // @todo reverse api to controller.connect(segment) or this.connect(segment)
-      await segment.connect({ controller, destination });
+      await segment.connect({ controller, destination, isInNextLoop });
 
       this.stack?.recalculateStartTimes();
     } catch (err) {

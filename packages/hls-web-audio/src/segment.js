@@ -16,9 +16,14 @@
  */
 class Segment {
   /**
-   * @param {Bool} - signpost that indicates that the segment is to be prepared for playback in the upcoming loop
+   * The calculated real start time of the scheduled sourcenode against the audiocontext's currentTime
    */
-  isInNextLoop = false;
+  #realStart;
+
+  /**
+   * The calculated offset of the scheduled sourcenode
+   */
+  #offset;
 
   /**
    * @param {Object} param - The params
@@ -85,12 +90,13 @@ class Segment {
     return this.loadHandle;
   }
 
-  async connect({ destination, controller }) {
-    if (this.sourceNode) throw new Error('Cannot connect a segment twice');
+  async connect({ destination, controller, isInNextLoop }) {
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
     const { ac } = controller;
     const audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
+
+    if (this.sourceNode) throw new Error('Cannot connect a segment twice');
 
     // update the expected duration (from m3u8 file) with the real duration from the decoded audio
     this.duration = audioBuffer.duration;
@@ -99,10 +105,12 @@ class Segment {
     sourceNode.buffer = audioBuffer;
     sourceNode.connect(destination);
 
-    const start = controller.calculateRealStart(this);
-    const offset = controller.calculateOffset(this);
+    this.#realStart = controller.calculateRealStart(this);
+    this.#offset = controller.calculateOffset(this, isInNextLoop);
 
-    sourceNode.start(start, offset);
+    console.log('connect', this.src, this.#realStart, this.#offset);
+
+    sourceNode.start(this.#realStart, this.#offset);
 
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
@@ -113,9 +121,6 @@ class Segment {
 
     // We no longer need the raw data, clear up memory
     this.arrayBuffer = null;
-
-    // unset signpost
-    this.isInNextLoop = undefined;
   }
 
   disconnect() {
@@ -137,6 +142,9 @@ class Segment {
       // remove reference
       this.sourceNode = null;
     }
+
+    this.#realStart = undefined;
+    this.#offset = undefined;
   }
 
   /**
@@ -164,6 +172,14 @@ class Segment {
    */
   get end() {
     return this.start !== undefined ? this.start + this.duration : undefined;
+  }
+
+  get realEnd() {
+    if (this.#realStart) {
+      return this.#realStart + this.duration;
+    }
+
+    return undefined;
   }
 }
 

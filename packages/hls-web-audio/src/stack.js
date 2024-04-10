@@ -81,28 +81,16 @@ export default class {
    * @returns {Object|undefined}
    */
   consume() {
-    const { current, next, first } = this;
+    const { current } = this;
+    const { next } = current;
 
-    const getNextElement = () => {
-      if (current && !current.$inTransit && !current.isReady) {
-        return current;
-      }
-      if (next && !next.$inTransit && !next.isReady) {
-        return next;
-      }
+    let element;
 
-      // when looping, when we no longer have a next element, this means that we're nearing the end
-      // we then want to pre-load the first element so that we get a smooth transition that does not halt playback
-      if (this.loop && !next && !first.$inTransit && !first.isReady) {
-        // mark the element for scheduling in the upcoming loop
-        first.isInNextLoop = true;
-        return first;
-      }
-
-      return undefined;
-    };
-
-    const element = getNextElement();
+    if (current && !current.$inTransit && !current.isReady) {
+      element = current;
+    } else if (next && !next.$inTransit && !next.isReady) {
+      element = next;
+    }
 
     if (element) {
       // store a signpost that we're currently $inTransit the element
@@ -159,18 +147,22 @@ export default class {
   /**
    * @returns {Object} The next elements, based on the currentTime, and a margin
    */
+  // get next() {
+  //   // return this.currentPointer >= 0 ? this.elements?.[this.currentPointer + 1] : undefined;
+  //   if (this.currentPointer !== -1) {
+  //     const i = this.currentPointer + 1;
+  //     if (i >= 0) return this.elements?.[i];
+  //   }
+
+  //   // check if one is upcoming in the near future
+  //   const iNear = this.getIndexAt(this.currentTime + this.nextMarginSeconds);
+  //   if (iNear >= 0) return this.elements?.[iNear];
+
+  //   return undefined;
+  // }
+
   get next() {
-    // return this.currentPointer >= 0 ? this.elements?.[this.currentPointer + 1] : undefined;
-    if (this.currentPointer !== -1) {
-      const i = this.currentPointer + 1;
-      if (i >= 0) return this.elements?.[i];
-    }
-
-    // check if one is upcoming in the near future
-    const iNear = this.getIndexAt(this.currentTime + this.nextMarginSeconds);
-    if (iNear >= 0) return this.elements?.[iNear];
-
-    return undefined;
+    return this.current.next;
   }
 
   /**
