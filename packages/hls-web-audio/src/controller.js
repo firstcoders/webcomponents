@@ -201,6 +201,12 @@ class Controller extends Observer {
     // console.log(this.startOffset);
     // this.fixAdjustedStart(0, this.adjustedStart + this.duration);
     // }
+    console.log({
+      t: this.currentTime,
+      act: this.ac.currentTime,
+      pd: this.playDuration,
+      aj: this.adjustedStart,
+    });
 
     this.fireEvent('timeupdate', {
       t: this.currentTime,
@@ -280,19 +286,13 @@ class Controller extends Observer {
    * @returns {Int} - The max of the duration of the hls tracks that are controlled by this controller
    */
   get duration() {
-    // if the duration was manually set, return that
-    if (this._duration) return this._duration;
-
     const max = Math.max.apply(
       null,
       this.hls.map((hls) => hls.end).filter((duration) => !!duration),
     );
 
-    // store the previously calculated value
-    this._previousDuration = max;
-
     // when there are no durations, -Infinity can come out of the above calc
-    return max > 0 ? max - this.offset : undefined;
+    return max > 0 ? max : undefined;
   }
 
   /**
@@ -302,6 +302,19 @@ class Controller extends Observer {
   set duration(duration) {
     this._duration = duration;
     this.notifyUpdated('duration', duration);
+  }
+
+  /**
+   * The duration of actual playback, taking into account offset and set duration
+   *
+   * @returns {Int}
+   */
+  get playDuration() {
+    // if the duration was manually set, return that
+    if (this._duration) return this._duration;
+
+    // when there are no durations, -Infinity can come out of the above calc
+    return this.duration - this.offset;
   }
 
   /**
@@ -340,16 +353,10 @@ class Controller extends Observer {
   get currentTime() {
     if (this.adjustedStart === undefined) return undefined;
 
-    let t = this.ac.currentTime - this.adjustedStart;
+    const t = this.ac.currentTime - this.adjustedStart;
 
-    if (this.offset) {
-      t += this.offset;
-      console.log({ t, d: this.duration });
-    }
-
-    t = (t % this.duration) + this.offset;
-
-    return t;
+    // mod by
+    return (t % this.playDuration) + this.offset;
   }
 
   /**

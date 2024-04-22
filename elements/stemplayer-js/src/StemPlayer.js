@@ -275,10 +275,9 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       });
     });
 
-    controller.on('duration', () => {
-      console.log('rawDuration', controller.rawDuration);
+    controller.on('duration', duration => {
       this.#updateChildren({
-        duration: controller.rawDuration,
+        duration,
       });
     });
 
@@ -606,11 +605,13 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
    * @private
    */
   #updateChildren(props) {
-    this.slottedElements.forEach(el => {
-      if (el instanceof StemComponent || el instanceof ControlComponent)
-        Object.keys(props).forEach(key => {
-          el[key] = props[key];
-        });
-    });
+    setTimeout(() => {
+      this.slottedElements.forEach(el => {
+        if (el instanceof StemComponent || el instanceof ControlComponent)
+          Object.keys(props).forEach(key => {
+            el[key] = props[key];
+          });
+      });
+    }, 0);
   }
 }
