@@ -88,6 +88,7 @@ export default class {
       if (current && !current.$inTransit && !current.isReady) {
         return current;
       }
+
       if (next && !next.$inTransit && !next.isReady) {
         return next;
       }

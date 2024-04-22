@@ -20,8 +20,6 @@ import Stack from './stack.js';
 import parseM3u8 from './lib/parseM3u8.js';
 
 class HLS {
-  #startPointer = 0;
-
   /**
    * @param {Object} param - The params
    * @param {Object} param.controller - The controller
@@ -291,6 +289,10 @@ class HLS {
     if (!segment) return;
 
     try {
+      const realStart = this.controller.calculateRealStart(segment);
+      const offset = this.controller.calculateOffset(segment);
+
+      // if (this.controller.isInPlayWindow(realStart, offset)) {
       // notify to the controller that loading has started
       this.controller.notify('loading-start', this);
 
@@ -298,16 +300,17 @@ class HLS {
       await segment.load().promise;
 
       // connect it to the audio
-      // @todo reverse api to controller.connect(segment) or this.connect(segment)
-      const { end } = await segment.connect({
+      await segment.connect({
         controller,
         destination,
-        realStart: this.#startPointer,
+        realStart,
+        offset,
       });
 
-      this.#startPointer = end;
+      console.log({ realStart, offset, loop: this.controller.nLoop });
 
       this.stack?.recalculateStartTimes();
+      // }
     } catch (err) {
       if (err.name !== 'AbortError') {
         this.controller?.notify('error', err);

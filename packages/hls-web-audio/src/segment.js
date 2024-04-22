@@ -85,39 +85,31 @@ class Segment {
     return this.loadHandle;
   }
 
-  async connect({ destination, controller, realStart }) {
-    if (this.sourceNode) throw new Error('Cannot connect a segment twice');
+  async connect({ destination, controller, realStart, offset }) {
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
     const { ac } = controller;
     const audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
 
+    if (this.sourceNode) throw new Error('Cannot connect a segment twice');
+
     // update the expected duration (from m3u8 file) with the real duration from the decoded audio
     this.duration = audioBuffer.duration;
 
-    const sourceNode = ac.createBufferSource();
-    sourceNode.buffer = audioBuffer;
-    sourceNode.connect(destination);
-
-    const start = realStart || controller.calculateRealStart(this);
-    const offset = controller.calculateOffset(this);
-
-    sourceNode.start(start, offset);
+    this.sourceNode = ac.createBufferSource();
+    this.sourceNode.buffer = audioBuffer;
+    this.sourceNode.connect(destination);
+    this.sourceNode.start(realStart, offset);
 
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
-    sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
-
-    // store reference
-    this.sourceNode = sourceNode;
+    this.sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
 
     // We no longer need the raw data, clear up memory
     this.arrayBuffer = null;
 
     // unset signpost
     this.isInNextLoop = undefined;
-
-    return { end: start + this.duration - offset };
   }
 
   disconnect() {
