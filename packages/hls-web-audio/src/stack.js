@@ -81,7 +81,8 @@ export default class {
    * @returns {Object|undefined}
    */
   consume() {
-    const { current, next, first } = this;
+    // eslint-disable-next-line no-unused-vars
+    const { current, next } = this;
 
     const getNextElement = () => {
       if (current && !current.$inTransit && !current.isReady) {
@@ -93,11 +94,11 @@ export default class {
 
       // when looping, when we no longer have a next element, this means that we're nearing the end
       // we then want to pre-load the first element so that we get a smooth transition that does not halt playback
-      if (this.loop && !next && !first.$inTransit && !first.isReady) {
-        // mark the element for scheduling in the upcoming loop
-        first.isInNextLoop = true;
-        return first;
-      }
+      // if (this.loop && !next && !first.$inTransit && !first.isReady) {
+      //   // mark the element for scheduling in the upcoming loop
+      //   first.isInNextLoop = true;
+      //   return first;
+      // }
 
       return undefined;
     };

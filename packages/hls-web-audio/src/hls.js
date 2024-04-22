@@ -20,6 +20,8 @@ import Stack from './stack.js';
 import parseM3u8 from './lib/parseM3u8.js';
 
 class HLS {
+  #startPointer = 0;
+
   /**
    * @param {Object} param - The params
    * @param {Object} param.controller - The controller
@@ -173,16 +175,51 @@ class HLS {
    * @private
    * @param {Array} sources - An array containing the segment data
    */
+  // buildSegments(sources) {
+  //   this.stack?.push(
+  //     ...sources.map((source) => new Segment({ ...source, fetchOptions: this.fetchOptions })),
+  //   );
+
+  //   // const [first] = this.stack.elements;
+
+  //   // const virtual = new Segment({ src: first.src, duration: first.duration });
+  //   // virtual.$isVirtual = true;
+  //   // this.stack?.push(virtual);
+  // }
+
+  /**
+   **
+   * @private
+   * @param {Array} sources - An array containing the segment data
+   */
   buildSegments(sources) {
-    this.stack?.push(
-      ...sources.map((source) => new Segment({ ...source, fetchOptions: this.fetchOptions })),
-    );
+    const segments = [];
 
-    // const [first] = this.stack.elements;
+    sources.forEach((source) => {
+      segments.push(
+        new Segment({
+          ...source,
+          fetchOptions: this.fetchOptions,
+        }),
+      );
+    });
 
-    // const virtual = new Segment({ src: first.src, duration: first.duration });
-    // virtual.$isVirtual = true;
-    // this.stack?.push(virtual);
+    // create a linked list
+    segments.forEach((segment, index) => {
+      segment.previous = segments[index - 1];
+      segment.next = segments[index + 1];
+
+      if (index === 0) {
+        segment.previous = segments[segments.length - 1];
+      }
+
+      if (index === segments.length - 1) {
+        // eslint-disable-next-line prefer-destructuring
+        segment.next = segments[0];
+      }
+    });
+
+    this.stack?.push(...segments);
   }
 
   set duration(duration) {
@@ -262,7 +299,13 @@ class HLS {
 
       // connect it to the audio
       // @todo reverse api to controller.connect(segment) or this.connect(segment)
-      await segment.connect({ controller, destination });
+      const { end } = await segment.connect({
+        controller,
+        destination,
+        realStart: this.#startPointer,
+      });
+
+      this.#startPointer = end;
 
       this.stack?.recalculateStartTimes();
     } catch (err) {

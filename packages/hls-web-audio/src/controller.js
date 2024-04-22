@@ -201,12 +201,12 @@ class Controller extends Observer {
     // console.log(this.startOffset);
     // this.fixAdjustedStart(0, this.adjustedStart + this.duration);
     // }
-    console.log({
-      t: this.currentTime,
-      act: this.ac.currentTime,
-      pd: this.playDuration,
-      aj: this.adjustedStart,
-    });
+    // console.log({
+    //   t: this.currentTime,
+    //   act: this.ac.currentTime,
+    //   pd: this.playDuration,
+    //   aj: this.adjustedStart,
+    // });
 
     this.fireEvent('timeupdate', {
       t: this.currentTime,
@@ -404,24 +404,31 @@ class Controller extends Observer {
    *
    * @returns {Integer|undefined}
    */
-  calculateRealStart({ start, isInNextLoop }) {
-    const { adjustedStart } = this;
+  calculateRealStart({ start }) {
+    const { adjustedStart, offset } = this;
 
     if (adjustedStart === undefined) return undefined;
 
-    let realStart = adjustedStart + start;
+    let realStart = adjustedStart + start - offset;
 
-    if (this.loop) {
-      let { nLoop } = this;
+    // if (this.nLoop > 0) {
+    //   realStart += this.nLoop * this.playDuration;
+    //   console.log({ realStart, adjustedStart, start, offset: this.offset, nLoop: this.nLoop });
+    // }
 
-      // a segment has this property if it is being pre-loaded for playback in the near future
-      // this means that _at that time_ nLoop is still less than what it will be when playback
-      // for that segment commences - so we need to increase it
-      if (isInNextLoop) nLoop += 1;
+    // if (this.loop) {
+    //   let { nLoop } = this;
 
-      // when looping we need to take the number of loops into consideration when calculating start time
-      realStart += nLoop * this.duration;
-    }
+    //   // a segment has this property if it is being pre-loaded for playback in the near future
+    //   // this means that _at that time_ nLoop is still less than what it will be when playback
+    //   // for that segment commences - so we need to increase it
+    //   if (isInNextLoop) nLoop += 1;
+
+    //   // when looping we need to take the number of loops into consideration when calculating start time
+    //   realStart += nLoop * this.playDuration;
+    // }
+
+    // if (isInNextLoop) realStart += this.playDuration;
 
     if (realStart < 0) realStart = 0;
 

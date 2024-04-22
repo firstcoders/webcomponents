@@ -85,7 +85,7 @@ class Segment {
     return this.loadHandle;
   }
 
-  async connect({ destination, controller }) {
+  async connect({ destination, controller, realStart }) {
     if (this.sourceNode) throw new Error('Cannot connect a segment twice');
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
@@ -99,7 +99,7 @@ class Segment {
     sourceNode.buffer = audioBuffer;
     sourceNode.connect(destination);
 
-    const start = controller.calculateRealStart(this);
+    const start = realStart || controller.calculateRealStart(this);
     const offset = controller.calculateOffset(this);
 
     sourceNode.start(start, offset);
@@ -116,6 +116,8 @@ class Segment {
 
     // unset signpost
     this.isInNextLoop = undefined;
+
+    return { end: start + this.duration - offset };
   }
 
   disconnect() {
