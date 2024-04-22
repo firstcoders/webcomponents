@@ -136,6 +136,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       loop: { type: Boolean },
 
       /**
+       * Start at n seconds
+       */
+      offset: { type: Number },
+
+      /**
        * Disabled the mouseover hover effect
        */
       noHover: { type: Boolean, attribute: 'no-hover' },
@@ -270,9 +275,10 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       });
     });
 
-    controller.on('duration', duration => {
+    controller.on('duration', () => {
+      console.log('rawDuration', controller.rawDuration);
       this.#updateChildren({
-        duration,
+        duration: controller.rawDuration,
       });
     });
 
@@ -341,6 +347,9 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     changedProperties.forEach((oldValue, propName) => {
       if (['loop'].indexOf(propName) !== -1) {
         this.#controller.loop = this.loop;
+      }
+      if (['offset'].indexOf(propName) !== -1) {
+        this.#controller.offset = this.offset;
       }
     });
   }

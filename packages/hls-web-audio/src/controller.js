@@ -43,6 +43,11 @@ class Controller extends Observer {
   hls = [];
 
   /**
+   * Offset allows setting of region
+   */
+  offset = 0;
+
+  /**
    * @constructor
    * @param {Object} param0 [{}] - A parameter object
    * @param {AudioContext} [AudioContext] - An instance of an audiocontext
@@ -287,7 +292,7 @@ class Controller extends Observer {
     this._previousDuration = max;
 
     // when there are no durations, -Infinity can come out of the above calc
-    return max > 0 ? max : undefined;
+    return max > 0 ? max - this.offset : undefined;
   }
 
   /**
@@ -333,9 +338,16 @@ class Controller extends Observer {
    * @returns {Integer|undefined} - The current time, in seconds.
    */
   get currentTime() {
-    let t = this.adjustedStart !== undefined ? this.ac.currentTime - this.adjustedStart : undefined;
+    if (this.adjustedStart === undefined) return undefined;
 
-    if (this.loop) t %= this.duration;
+    let t = this.ac.currentTime - this.adjustedStart;
+
+    if (this.offset) {
+      t += this.offset;
+      console.log({ t, d: this.duration });
+    }
+
+    t = (t % this.duration) + this.offset;
 
     return t;
   }

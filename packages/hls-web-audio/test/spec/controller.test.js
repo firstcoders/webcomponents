@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import { expect } from '@bundled-es-modules/chai';
 import sinon from 'sinon';
 import Controller from '../../src/controller';
@@ -686,4 +687,55 @@ describe('controller', () => {
       expect(!controller.canPlay);
     });
   });
+});
+
+describe('when offset is provided', () => {
+  let controller;
+
+  beforeEach(async () => {
+    controller = new Controller({
+      ac: {
+        currentTime: 0,
+        destination: {},
+        createGain() {
+          return { connect() {} };
+        },
+        suspend() {},
+        addEventListener: () => {},
+      },
+    });
+    controller.observe({ duration: 60, end: 60 });
+    controller.offset = 30;
+  });
+
+  describe('when seeked to start at 0', () => {
+    beforeEach(() => {
+      controller.adjustedStart = 0;
+    });
+
+    it('takes offset into account when calculating currentTime', () => {
+      expect(controller.currentTime).equal(30);
+    });
+
+    it('takes offset into account when calculating currentTime', () => {
+      controller.ac.currentTime = 1;
+      expect(controller.currentTime).equal(31);
+    });
+
+    describe('when in the next loop at #t = 31', () => {
+      it('takes offset into account #currenttime = 31', () => {
+        controller.ac.currentTime = 31;
+        expect(controller.currentTime).equal(31);
+      });
+    });
+  });
+
+  // describe('when looping', () => {
+  //   it('should loop back to the position of the offset', () => {
+  //     controller.adjustedStart = 0;
+  //     controller.offset = 30;
+  //     controller.ac.currentTime = 61;
+  //     expect(controller.currentTime).equal(31);
+  //   });
+  // });
 });
