@@ -16,11 +16,6 @@
  */
 export default class {
   /**
-   * @property {Number} startPointer - an internal pointer pointing to where the current element is
-   */
-  currentPointer = 0;
-
-  /**
    * @property {Array} elements - The ordered elements that jointly compose this HLS track
    * @private
    */
@@ -74,9 +69,9 @@ export default class {
    * Try to get the next element that is not ready
    * @returns {Object|undefined}
    */
-  consume() {
-    // eslint-disable-next-line no-unused-vars
-    const { current } = this;
+  consume(t) {
+    // ceil to make sure we do not fetch any sements with a very short remaining duration
+    const current = this.getAt(Math.ceil(t)); // TODO Math.ceil(t * 10) / 10) if to course
 
     const getNextElement = () => {
       if (current && !current.$inTransit && !current.isReady) {
@@ -107,20 +102,6 @@ export default class {
   }
 
   /**
-   * Update the current time pointer
-   *
-   * @param {Number} t - the current time
-   */
-  set currentTime(t) {
-    this._currentTime = t;
-    this.currentPointer = this.getIndexAt(t);
-  }
-
-  get currentTime() {
-    return this._currentTime;
-  }
-
-  /**
    * Get the total duration
    *
    * @returns {Number|undefined}
@@ -131,13 +112,6 @@ export default class {
 
   set duration(duration) {
     this.durationOverride = duration;
-  }
-
-  /**
-   * @returns {Object} The current element, based on the currentTime
-   */
-  get current() {
-    return this.elements[this.currentPointer];
   }
 
   /**
@@ -172,7 +146,7 @@ export default class {
   }
 
   /**
-   * Get the index of the current element
+   * Get the index of an element given a time
    * @param {Number} t - the time
    * @returns
    */

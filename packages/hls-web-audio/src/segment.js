@@ -16,11 +16,6 @@
  */
 class Segment {
   /**
-   * @param {Bool} - signpost that indicates that the segment is to be prepared for playback in the upcoming loop
-   */
-  isInNextLoop = false;
-
-  /**
    * @param {Object} param - The params
    * @param {Object} param.src - The src url
    * @param {Object} param.duration - The duration
@@ -47,6 +42,9 @@ class Segment {
     // dont retry fetch requests that previously failed
     // TODO allow injecting fetchRetry (do not implement retry logic in here)
     if (this.fetchFailed) return { promise: Promise.reject(new Error('Fetch failed')) };
+
+    // do not load multiple times. simply return the same promise
+    if (this.loadHandle) return this.loadHandle;
 
     const abortController = new AbortController();
 
@@ -85,10 +83,9 @@ class Segment {
     return this.loadHandle;
   }
 
-  async connect({ destination, controller, start, offset, stop }) {
+  async connect({ destination, ac, start, offset, stop }) {
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
-    const { ac } = controller;
     const audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
 
     if (this.sourceNode) throw new Error('Cannot connect a segment twice');
@@ -102,22 +99,12 @@ class Segment {
     this.sourceNode.start(start, offset);
     this.sourceNode.stop(stop);
 
-    console.log({
-      start,
-      offset,
-      stop,
-      end: start + audioBuffer.duration,
-    });
-
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
     this.sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
 
     // We no longer need the raw data, clear up memory
     this.arrayBuffer = null;
-
-    // unset signpost
-    this.isInNextLoop = undefined;
   }
 
   disconnect() {
@@ -138,6 +125,8 @@ class Segment {
 
       // remove reference
       this.sourceNode = null;
+
+      this.currentConnectedNode = null;
     }
   }
 

@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import Controller from './controller.js';
+import Timeline from './timeline.js';
 import Segment from './segment.js';
 import Stack from './stack.js';
 import parseM3u8 from './lib/parseM3u8.js';
@@ -274,36 +275,32 @@ class HLS {
    * Handles a controller's "timeupdate" event
    */
   async runSchedulePass() {
-    const { gainNode: destination, controller } = this;
+    const timeline = Timeline.fromController(this.controller);
 
-    // update the currenttime, so the stack knows what the current and next segment it
-    this.stack.currentTime = controller.currentTime;
+    // try the current segment
+    const current = await this.scheduleAt(timeline);
 
-    // update the loop property
-    this.stack.loop = controller.loop;
+    // it that one is already scheduled, try the next one
+    if (!current) {
+      timeline.fastForward(5);
+      await this.scheduleAt(timeline);
+    }
+  }
 
+  async scheduleAt(timeline) {
     // get the next segment
-    let segment = this.stack.consume();
+    const segment = this.stack.consume(timeline.currentTime);
 
-    // if we dont get one, there's nothing to do at this time
+    // // if we dont get one, there's nothing to do at this time
     if (!segment) {
-      // try to get the upcoming element by fast forwarding
-      this.stack.currentTime = controller.getRelativeTimeAt(controller.ac.currentTime + 5);
-
-      segment = this.stack.consume();
-
-      // rewind so we're in the correct time
-      this.stack.currentTime = controller.currentTime;
-
-      if (!segment) return;
+      if (!segment) return undefined;
     }
 
     try {
-      const start = this.controller.calculateRealStart(segment);
-      const offset = this.controller.calculateOffset(segment);
-      const stop = this.controller.absolutePlayEnd;
+      const start = timeline.calculateAbsoluteStart(segment.start);
+      const offset = timeline.calculateOffset(segment.start);
+      const stop = timeline.absolutePlayEnd;
 
-      // if (this.controller.isInPlayWindow(realStart, offset)) {
       // notify to the controller that loading has started
       this.controller.notify('loading-start', this);
 
@@ -312,14 +309,25 @@ class HLS {
 
       // connect it to the audio
       await segment.connect({
-        controller,
-        destination,
+        ac: this.controller.ac,
+        destination: this.gainNode,
         start,
         offset,
         stop,
       });
 
+      console.log('connect', {
+        start,
+        offset,
+        stop,
+        currentLoop: timeline.currentLoop,
+        relativeStart: segment.start,
+        timeline,
+        segment,
+      });
+
       this.stack?.recalculateStartTimes();
+
       // }
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -332,6 +340,8 @@ class HLS {
       // notify to the controller that this segment is ready
       this.controller?.notify('loading-end', this);
     }
+
+    return segment;
   }
 
   get volume() {
@@ -356,14 +366,16 @@ class HLS {
    * Whether the track can play the current semgent based on currentTime
    */
   get canPlay() {
-    return this.stack.current?.isReady;
+    const current = this.stack.getAt(this.controller.currentTime);
+    return current?.isReady;
   }
 
   /**
    * Whether the track should and can play (depends on whether there is a current segment)
    */
   get shouldAndCanPlay() {
-    return !this.stack.current || this.stack.current?.isReady;
+    const current = this.stack.getAt(this.controller.currentTime);
+    return !current || current?.isReady;
   }
 }
 

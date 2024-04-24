@@ -73,7 +73,7 @@ class Controller extends Observer {
     // how often a "timeupdate" event is triggered
     // this also determines how often the controller checks if the current|next segments need loading
     // and if the playback needs to be paused due to buffering
-    this.refreshRate = refreshRate || 250;
+    this.refreshRate = refreshRate || 333;
 
     // The destination audio node on which all audionodes send data
     this.destination = destination || this.ac.destination;
@@ -390,56 +390,6 @@ class Controller extends Observer {
   }
 
   /**
-   * Calculate start relative to now.
-   * Normally the start time is just this.start. However due to seeking this can vary. It will help to understand the workings of the audiocontext timeline.
-   *
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/currentTime
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/start
-   *
-   * @param {Integer} segment - The segment
-   * @param {Integer} segment.start - The start time in seconds
-   * @param {Integer} segment.isInNextLoop - Whether to schedule for the upcoming loop
-   *
-   * @returns {Integer|undefined}
-   */
-  calculateRealStart({ start }) {
-    const { adjustedStart, offset } = this;
-
-    if (adjustedStart === undefined) return undefined;
-
-    let realStart = adjustedStart + start - offset;
-
-    if (this.nLoop > 0) {
-      realStart += this.nLoop * this.playDuration;
-    }
-
-    if (realStart < 0) realStart = 0;
-
-    return realStart;
-  }
-
-  /**
-   * Calculate offset by taking into consideration the start time.
-   * Normally the offset is 0. If the user seeks halfway into a 10 second segment, the offset is 5.
-   *
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/start
-   *
-   * @param {Integer} t
-   * @returns {Integer|undefined}
-   */
-  calculateOffset({ start, isInNextLoop }) {
-    if (this.currentTime === undefined) return undefined;
-
-    let offset = this.currentTime - start;
-
-    // offset is < 0 when start is in the future, so offset should be 0 in that case
-    // if isInNextLoop is true, then the segment is being pre-loaded and we want to play all of it so offset should be 0
-    if (offset < 0 || isInNextLoop) offset = 0;
-
-    return offset;
-  }
-
-  /**
    * Get the playback state
    * @returns {String} The audiocontext state
    */
@@ -527,14 +477,6 @@ class Controller extends Observer {
       this.fireEvent(property, newvalue);
       this.$notifyUpdatedPropertyCache[property] = newvalue;
     }
-  }
-
-  get absolutePlayEnd() {
-    return this.calculateRealStart({ start: this.offset + this.playDuration });
-  }
-
-  get relativePlayEnd() {
-    return this.offset + this.playDuration;
   }
 
   getRelativeTimeAt(absoluteTime) {
