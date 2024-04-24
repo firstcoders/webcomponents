@@ -283,10 +283,20 @@ class HLS {
     this.stack.loop = controller.loop;
 
     // get the next segment
-    const segment = this.stack.consume();
+    let segment = this.stack.consume();
 
     // if we dont get one, there's nothing to do at this time
-    if (!segment) return;
+    if (!segment) {
+      // try to get the upcoming element by fast forwarding
+      this.stack.currentTime = controller.getRelativeTimeAt(controller.ac.currentTime + 5);
+
+      segment = this.stack.consume();
+
+      // rewind so we're in the correct time
+      this.stack.currentTime = controller.currentTime;
+
+      if (!segment) return;
+    }
 
     try {
       const start = this.controller.calculateRealStart(segment);

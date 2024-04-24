@@ -203,9 +203,9 @@ class Controller extends Observer {
     // }
     // console.log({
     //   t: this.currentTime,
-    //   act: this.ac.currentTime,
-    //   pd: this.playDuration,
-    //   aj: this.adjustedStart,
+    //   // act: this.ac.currentTime,
+    //   // pd: this.playDuration,
+    //   // aj: this.adjustedStart,
     // });
 
     this.fireEvent('timeupdate', {
@@ -351,12 +351,7 @@ class Controller extends Observer {
    * @returns {Integer|undefined} - The current time, in seconds.
    */
   get currentTime() {
-    if (this.adjustedStart === undefined) return undefined;
-
-    const t = this.ac.currentTime - this.adjustedStart;
-
-    // mod by
-    return (t % this.playDuration) + this.offset;
+    return this.getRelativeTimeAt(this.ac.currentTime);
   }
 
   /**
@@ -468,10 +463,6 @@ class Controller extends Observer {
     this.gainNode.gain.value = v;
   }
 
-  get absolutePlayEnd() {
-    return this.calculateRealStart({ start: this.offset + this.playDuration });
-  }
-
   /**
    * Resets the controller
    * @private
@@ -536,6 +527,23 @@ class Controller extends Observer {
       this.fireEvent(property, newvalue);
       this.$notifyUpdatedPropertyCache[property] = newvalue;
     }
+  }
+
+  get absolutePlayEnd() {
+    return this.calculateRealStart({ start: this.offset + this.playDuration });
+  }
+
+  get relativePlayEnd() {
+    return this.offset + this.playDuration;
+  }
+
+  getRelativeTimeAt(absoluteTime) {
+    if (this.adjustedStart === undefined) return undefined;
+
+    const t = absoluteTime - this.adjustedStart;
+
+    // take looping into account
+    return (t % this.playDuration) + this.offset;
   }
 }
 

@@ -36,15 +36,9 @@ export default class {
    */
   initialStartTime;
 
-  /**
-   * @property {Number} nextMarginSeconds - a marin, in seconds, that controls a rolling window that checks whether a segment is nearly next
-   */
-  nextMarginSeconds;
-
-  constructor({ start = 0, nextMarginSeconds = 5 } = {}) {
+  constructor({ start = 0 } = {}) {
     this.initialStartTime = start;
     this.startPointer = start;
-    this.nextMarginSeconds = nextMarginSeconds;
   }
 
   /**
@@ -82,24 +76,12 @@ export default class {
    */
   consume() {
     // eslint-disable-next-line no-unused-vars
-    const { current, next } = this;
+    const { current } = this;
 
     const getNextElement = () => {
       if (current && !current.$inTransit && !current.isReady) {
         return current;
       }
-
-      // if (next && !next.$inTransit && !next.isReady) {
-      //   return next;
-      // }
-
-      // when looping, when we no longer have a next element, this means that we're nearing the end
-      // we then want to pre-load the first element so that we get a smooth transition that does not halt playback
-      // if (this.loop && !next && !first.$inTransit && !first.isReady) {
-      //   // mark the element for scheduling in the upcoming loop
-      //   first.isInNextLoop = true;
-      //   return first;
-      // }
 
       return undefined;
     };
@@ -156,23 +138,6 @@ export default class {
    */
   get current() {
     return this.elements[this.currentPointer];
-  }
-
-  /**
-   * @returns {Object} The next elements, based on the currentTime, and a margin
-   */
-  get next() {
-    // return this.currentPointer >= 0 ? this.elements?.[this.currentPointer + 1] : undefined;
-    if (this.currentPointer !== -1) {
-      const i = this.currentPointer + 1;
-      if (i >= 0) return this.elements?.[i];
-    }
-
-    // check if one is upcoming in the near future
-    const iNear = this.getIndexAt(this.currentTime + this.nextMarginSeconds);
-    if (iNear >= 0) return this.elements?.[iNear];
-
-    return undefined;
   }
 
   /**

@@ -102,6 +102,13 @@ class Segment {
     this.sourceNode.start(start, offset);
     this.sourceNode.stop(stop);
 
+    console.log({
+      start,
+      offset,
+      stop,
+      end: start + audioBuffer.duration,
+    });
+
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
     this.sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
