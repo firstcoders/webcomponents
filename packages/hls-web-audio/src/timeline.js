@@ -84,8 +84,6 @@ class Timeline {
    * @returns {Integer|undefined}
    */
   calculateOffset(start) {
-    if (this.currentTime === undefined) return undefined;
-
     let offset = this.relativeStart - start;
 
     // offset is < 0 when start is in the future, so offset should be 0 in that case
@@ -95,7 +93,11 @@ class Timeline {
   }
 
   get absolutePlayEnd() {
-    return this.calculateAbsoluteStart(this.relativeStart + this.offset + this.playDuration);
+    return this.calculateAbsoluteStart(this.relativePlayEnd);
+  }
+
+  get relativePlayStart() {
+    return this.offset;
   }
 
   get relativePlayEnd() {

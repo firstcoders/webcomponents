@@ -292,20 +292,32 @@ class HLS {
     const segment = this.stack.consume(timeline.currentTime);
 
     // // if we dont get one, there's nothing to do at this time
-    if (!segment) {
-      if (!segment) return undefined;
-    }
+    if (!segment) return undefined;
 
     try {
       const start = timeline.calculateAbsoluteStart(segment.start);
       const offset = timeline.calculateOffset(segment.start);
       const stop = timeline.absolutePlayEnd;
+      let loop = false;
 
       // notify to the controller that loading has started
       this.controller.notify('loading-start', this);
 
       // load the segment
       await segment.load().promise;
+
+      console.log(
+        'loopcheck',
+        segment.start,
+        timeline.offset,
+        segment.end,
+        timeline.relativePlayEnd,
+      );
+
+      if (Math.floor(segment.start) <= timeline.offset && segment.end > timeline.relativePlayEnd) {
+        loop = true;
+        console.log('loopyes', segment.end, timeline.relativePlayEnd);
+      }
 
       // connect it to the audio
       await segment.connect({
@@ -314,6 +326,7 @@ class HLS {
         start,
         offset,
         stop,
+        loop,
       });
 
       console.log('connect', {

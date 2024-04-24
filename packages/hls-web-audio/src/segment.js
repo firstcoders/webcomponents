@@ -83,7 +83,7 @@ class Segment {
     return this.loadHandle;
   }
 
-  async connect({ destination, ac, start, offset, stop }) {
+  async connect({ destination, ac, start, offset, stop, loop }) {
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
     const audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
@@ -96,8 +96,14 @@ class Segment {
     this.sourceNode = ac.createBufferSource();
     this.sourceNode.buffer = audioBuffer;
     this.sourceNode.connect(destination);
+
+    if (loop) {
+      this.sourceNode.loop = true;
+      this.sourceNode.loopEnd = stop;
+    }
+
     this.sourceNode.start(start, offset);
-    this.sourceNode.stop(stop);
+    if (!loop) this.sourceNode.stop(stop);
 
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
