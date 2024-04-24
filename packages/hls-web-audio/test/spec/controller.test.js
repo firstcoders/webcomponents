@@ -5,10 +5,11 @@ import Controller from '../../src/controller';
 import HLS from '../../src/hls';
 
 const mockAc = () => ({
-  currentTime: 0,
   destination: {},
   createGain() {
-    return { connect() {} };
+    return {
+      connect: sinon.spy(),
+    };
   },
   suspend() {},
   addEventListener: () => {},
@@ -627,87 +628,29 @@ describe('controller', () => {
     let controller;
 
     beforeEach(() => {
-      controller = new Controller({ ac: mockAc() });
+      controller = new Controller();
     });
 
-    describe('when offset = 0', () => {
-      describe('when currentTime = 0', () => {
-        beforeEach(() => {
-          controller.ac.currentTime = 0;
-        });
-
-        describe('when seeked to 0', () => {
-          beforeEach(() => {
-            controller.adjustedStart = 0;
-          });
-
-          it('should return the correct offset', () => {
-            expect(controller.calculateOffset({ start: 0 })).equal(0);
-            expect(controller.calculateOffset({ start: 10 })).equal(0);
-          });
-        });
-
-        describe('when seeked to 5', () => {
-          beforeEach(() => {
-            controller.adjustedStart = -5;
-          });
-
-          it('should return the correct offset', () => {
-            expect(controller.calculateOffset({ start: 0 })).equal(5);
-            expect(controller.calculateOffset({ start: 10 })).equal(0);
-          });
-        });
-      });
-
-      describe('when currentTime = 5', () => {
-        beforeEach(() => {
-          controller.ac.currentTime = 5;
-        });
-
-        describe('when seeked to 0', () => {
-          beforeEach(() => {
-            controller.adjustedStart = 5;
-          });
-
-          it('should return the correct offset', () => {
-            expect(controller.calculateOffset({ start: 0 })).equal(0);
-            // expect(controller.calculateOffset({ start: 10 })).equal(0);
-          });
-        });
-
-        // describe('when seeked to 5', () => {
-        //   beforeEach(() => {
-        //     controller.adjustedStart = -25;
-        //   });
-
-        //   it('should return the correct offset', () => {
-        //     expect(controller.calculateOffset({ start: 0 })).equal(5);
-        //     expect(controller.calculateOffset({ start: 10 })).equal(0);
-        //   });
-        // });
+    describe('when #currentTime = undefined (default)', () => {
+      it('returns undefined', () => {
+        expect(controller.calculateOffset({ start: 60 })).to.be.undefined;
       });
     });
 
-    // describe('when #currentTime = undefined (default)', () => {
-    //   it('returns undefined', () => {
-    //     expect(controller.calculateOffset({ start: 60 })).to.be.undefined;
-    //   });
-    // });
+    describe('when #currentTime = 30', () => {
+      beforeEach(() => {
+        controller.observe({ duration: 60, end: 60 });
+        controller.currentTime = 30;
+      });
 
-    // describe('when #currentTime = 30', () => {
-    //   beforeEach(() => {
-    //     controller.observe({ duration: 60, end: 60 });
-    //     controller.currentTime = 30;
-    //   });
+      it('returns #offset=0 for a #start=60 in the future', () => {
+        expect(Math.round(controller.calculateOffset({ start: 60 }))).equal(0);
+      });
 
-    //   it('returns #offset=0 for a #start=60 in the future', () => {
-    //     expect(Math.round(controller.calculateOffset({ start: 60 }))).equal(0);
-    //   });
-
-    //   it('returns #offset = 10 for #start = 20 in the past', () => {
-    //     expect(Math.round(controller.calculateOffset({ start: 20 }))).equal(10);
-    //   });
-    // });
+      it('returns #offset = 10 for #start = 20 in the past', () => {
+        expect(Math.round(controller.calculateOffset({ start: 20 }))).equal(10);
+      });
+    });
   });
 
   describe('#state', () => {
@@ -762,7 +705,15 @@ describe('when offset is provided', () => {
 
   beforeEach(async () => {
     controller = new Controller({
-      ac: mockAc(),
+      ac: {
+        currentTime: 0,
+        destination: {},
+        createGain() {
+          return { connect() {} };
+        },
+        suspend() {},
+        addEventListener: () => {},
+      },
     });
     controller.observe({ duration: 60, end: 60 });
     controller.offset = 30;
@@ -799,3 +750,82 @@ describe('when offset is provided', () => {
   //   });
   // });
 });
+
+describe('getPlayDuration', () => {
+  let controller;
+
+  beforeEach(() => {
+    controller = new Controller({
+      ac: mockAc(),
+    });
+  });
+
+  describe('when offset = 0', () => {
+    it('returns the correct values', () => {
+      controller.observe({ duration: 100, end: 100 });
+      expect(controller.playDuration).equal(100);
+    });
+  });
+
+  describe('when offset = 10', () => {
+    it('returns the correct values', () => {
+      controller.offset = 10;
+      controller.observe({ duration: 100, end: 100 });
+      expect(controller.playDuration).equal(90);
+    });
+  });
+
+  describe('when offset = 10 and duration is set to 10', () => {
+    it('returns the correct values', () => {
+      controller.offset = 10;
+      controller.duration = 10;
+      controller.observe({ duration: 100, end: 100 });
+      expect(controller.playDuration).equal(10);
+    });
+  });
+});
+
+// describe('absolutePlayEnd', () => {
+//   let controller;
+
+//   beforeEach(() => {
+//     controller = new Controller({
+//       ac: mockAc(),
+//     });
+//   });
+
+//   describe('when adjustedStart = 0; offset = 0; and duration is 10', () => {
+//     it('returns the correct values', () => {
+//       controller.adjustedStart = 0;
+//       controller.offset = 0;
+//       controller.duration = 10;
+//       expect(controller.absolutePlayEnd).equal(10);
+//     });
+//   });
+
+//   describe('when adjustedStart = -10; offset = 0; and duration is 10', () => {
+//     it('returns the correct values', () => {
+//       controller.adjustedStart = -10;
+//       controller.offset = 0;
+//       controller.duration = 10;
+//       expect(controller.absolutePlayEnd).equal(0);
+//     });
+//   });
+
+//   describe('when adjustedStart = -10; offset = 10; and duration is 20', () => {
+//     it('returns the correct values', () => {
+//       controller.adjustedStart = -10;
+//       controller.offset = 10;
+//       controller.observe({ duration: 20, end: 20 });
+//       expect(controller.playDuration).equal(10);
+//       expect(controller.absolutePlayEnd).equal(10);
+//     });
+//   });
+
+//   describe('when adjustedStart = -50', () => {
+//     it('returns the correct values', () => {
+//       controller.adjustedStart = -50;
+//       expect(controller.getAbsoluteTime(0)).equal(-50);
+//     });
+//   });
+// });

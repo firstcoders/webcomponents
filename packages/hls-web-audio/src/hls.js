@@ -289,8 +289,9 @@ class HLS {
     if (!segment) return;
 
     try {
-      const realStart = this.controller.calculateRealStart(segment);
+      const start = this.controller.calculateRealStart(segment);
       const offset = this.controller.calculateOffset(segment);
+      const stop = this.controller.absolutePlayEnd;
 
       // if (this.controller.isInPlayWindow(realStart, offset)) {
       // notify to the controller that loading has started
@@ -303,11 +304,10 @@ class HLS {
       await segment.connect({
         controller,
         destination,
-        realStart,
+        start,
         offset,
+        stop,
       });
-
-      console.log({ realStart, offset, loop: this.controller.nLoop });
 
       this.stack?.recalculateStartTimes();
       // }

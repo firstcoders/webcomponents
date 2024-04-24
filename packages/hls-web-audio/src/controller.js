@@ -340,8 +340,6 @@ class Controller extends Observer {
 
     this.fixAdjustedStart(t);
 
-    this.relativeStart = t;
-
     // seek: suspend the ac before emitting the seek event: disconnecting audio nodes on a runnin ac can cause "cracks" and "pops".
     this.ac.suspend().then(() => {
       this.fireEvent('seek', { t: this.currentTime, pct: this.pct, remaining: this.remaining });
@@ -368,6 +366,9 @@ class Controller extends Observer {
   fixAdjustedStart(t) {
     // We round as extreme precise floating point numbers were causing slight rounding(?) errors in scheduling, resulting in ticks
     this.adjustedStart = Math.floor((this.ac.currentTime - t) * 10) / 10;
+
+    // store the relative start point
+    this.relativeStart = t;
   }
 
   /**
@@ -465,6 +466,10 @@ class Controller extends Observer {
    */
   set volume(v) {
     this.gainNode.gain.value = v;
+  }
+
+  get absolutePlayEnd() {
+    return this.calculateRealStart({ start: this.offset + this.playDuration });
   }
 
   /**
