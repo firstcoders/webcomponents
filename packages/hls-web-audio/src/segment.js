@@ -97,6 +97,9 @@ class Segment {
     this.sourceNode.buffer = audioBuffer;
     this.sourceNode.connect(destination);
 
+    // We no longer need the raw data, clear up memory
+    this.arrayBuffer = null;
+
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
     this.sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
@@ -108,9 +111,6 @@ class Segment {
 
     this.sourceNode.start(start, offset);
     if (!loop) this.sourceNode.stop(stop);
-
-    // We no longer need the raw data, clear up memory
-    this.arrayBuffer = null;
 
     // return the actual start time
     //    'If when is less than (AudioContext.currentTime, or if it's 0, the sound begins to play at once. The default value is 0'

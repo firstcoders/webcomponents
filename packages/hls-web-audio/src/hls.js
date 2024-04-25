@@ -316,13 +316,13 @@ class HLS {
         console.log('loopyes', segment.end, timeline.relativePlayEnd);
       }
 
-      // console.log('connect', {
-      //   start,
-      //   offset,
-      //   timeline,
-      //   segment: segment.src,
-      //   segmentstart: segment.start,
-      // });
+      console.log('connect', {
+        start,
+        offset,
+        timeline,
+        segment: segment.src,
+        segmentstart: segment.start,
+      });
 
       // connect it to the audio
       const actualAbsoluteStart = await segment.connect({

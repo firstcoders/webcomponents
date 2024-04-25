@@ -78,5 +78,27 @@ describe('calculateOffset', () => {
         offset: 0,
       }).calculateOffset(0), // first loop
     ).equal(5);
+
+    // loop = Math.floor((this.absoluteCurrentTime - this.absoluteStart) / this.playDuration);
+    expect(
+      new Timeline({
+        playDuration: 60,
+        relativeStart: 65, // seeked
+        relativeCurrentTime: 0,
+        offset: 0,
+      }).calculateOffset(0), // second loop
+    ).equal(5);
+
+    // expect(
+    //   new Timeline({
+    //     relativeCurrentTime: 74.62321995464852,
+    //     absoluteCurrentTime: 5.023219954648526,
+    //     absoluteStart: -69.6,
+    //     relativeStart: 69.6,
+    //     playDuration: 73.301873,
+    //     audioDuration: 73.301873,
+    //     offset: 0,
+    //   }).calculateOffset(0), // second loop
+    // ).equal(5);
   });
 });

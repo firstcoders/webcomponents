@@ -71,13 +71,38 @@ class Timeline {
    * @returns {Integer|undefined}
    */
   calculateOffset(start) {
-    const offset = this.relativePlayStart - start;
+    let relativeStart = start;
+
+    if (this.currentLoop > 0) {
+      relativeStart += this.currentLoop * this.playDuration;
+    }
+
+    const offset = this.relativePlayStart - relativeStart;
 
     // offset is < 0 when start is in the future, so offset should be 0 in that case
     if (offset < 0) return 0;
 
     return offset;
   }
+  // calculateOffset(start) {
+  //   let relativeStart = this.relativePlayStart - start;
+  //   // const loopDuration = this.currentLoop > 0 ? this.currentLoop * this.playDuration : 0;
+
+  //   if (this.currentLoop > 0) {
+  //     relativeStart += this.currentLoop * this.playDuration;
+  //   }
+
+  //   // if (this.currentLoop > 0) {
+  //   //   console.log('loop', this.currentLoop * this.playDuration);
+  //   // }
+
+  //   const offset = this.relativePlayStart - relativeStart;
+
+  //   // offset is < 0 when start is in the future, so offset should be 0 in that case
+  //   if (offset < 0) return 0;
+
+  //   return offset;
+  // }
 
   get absolutePlayEnd() {
     return this.absoluteStart + (this.currentLoop + 1) * this.playDuration;
@@ -109,13 +134,17 @@ class Timeline {
    * @returns {Integer|undefined} - The index of the loop
    */
   get currentLoop() {
-    return Math.floor((this.absoluteCurrentTime - this.absoluteStart) / this.playDuration);
+    return (
+      Math.floor(Math.abs(this.absoluteCurrentTime - this.absoluteStart) / this.playDuration) ||
+      Math.floor(Math.abs((this.relativeCurrentTime - this.relativeStart) / this.playDuration))
+    );
   }
 
   /**
    * @returns {Integer|undefined} - The current time, in seconds.
    */
   get currentTime() {
+    // return this.relativeCurrentTime;
     return this.getRelativeTimeAt(this.absoluteCurrentTime);
   }
 }
