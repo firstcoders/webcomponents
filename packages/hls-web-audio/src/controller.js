@@ -19,6 +19,8 @@ import AudioContext from './lib/audio-context.js';
 import { fadeIn, fadeOut } from './lib/fade.js';
 import isIOS from './lib/isIOS';
 import unmuteAudioContext from './lib/unmuteAudioContext.js';
+import Timeline from './timeline.js';
+import SeekOutOfRangeError from './error/SeekOutOfRangeError.js';
 
 /**
  * A controller is used to control the playback of one or more HLS tracks
@@ -201,18 +203,13 @@ class Controller extends Observer {
     // console.log(this.startOffset);
     // this.fixAdjustedStart(0, this.adjustedStart + this.duration);
     // }
-    // console.log({
-    //   t: this.currentTime,
-    //   // act: this.ac.currentTime,
-    //   // pd: this.playDuration,
-    //   // aj: this.adjustedStart,
-    // });
 
     this.fireEvent('timeupdate', {
       t: this.currentTime,
       pct: this.pct,
       remaining: this.remaining,
       act: this.ac.currentTime,
+      time: this.timeline,
     });
 
     // schedule next tick
@@ -338,12 +335,15 @@ class Controller extends Observer {
     if (typeof this.duration !== 'number' || t < 0 || t > this.duration)
       throw new Error(`CurrentTime ${t} should be between 0 and duration ${this.duration}`);
 
-    this.fixAdjustedStart(t);
+    if (t < this.timeline.relativePlayStart || t > this.timeline.relativePlayEnd)
+      throw new SeekOutOfRangeError();
+
+    this.fixAdjustedStart(t - this.offset);
 
     // seek: suspend the ac before emitting the seek event: disconnecting audio nodes on a runnin ac can cause "cracks" and "pops".
     this.ac.suspend().then(() => {
       this.fireEvent('seek', { t: this.currentTime, pct: this.pct, remaining: this.remaining });
-      if (this.desiredState === 'resumed' && !this.isBuffering) this.ac.resume();
+      // if (this.desiredState === 'resumed' && !this.isBuffering) this.ac.resume();
     });
   }
 
@@ -486,6 +486,10 @@ class Controller extends Observer {
 
     // take looping into account
     return (t % this.playDuration) + this.offset;
+  }
+
+  get timeline() {
+    return Timeline.fromController(this);
   }
 }
 

@@ -17,13 +17,13 @@
 class Timeline {
   static fromController(controller) {
     const timeline = new Timeline({
-      relativeCurrentTime: controller.currentTime,
-      absoluteCurrentTime: controller.ac.currentTime,
-      absoluteStart: controller.adjustedStart,
-      relativeStart: controller.relativeStart,
+      relativeCurrentTime: controller.currentTime || 0,
+      absoluteCurrentTime: controller.ac.currentTime || 0,
+      absoluteStart: controller.adjustedStart || 0,
+      relativeStart: controller.relativeStart || 0,
       playDuration: controller.playDuration,
       audioDuration: controller.duration,
-      offset: controller.offset,
+      offset: controller.offset || 0,
     });
 
     return timeline;
@@ -77,7 +77,7 @@ class Timeline {
       relativeStart += this.currentLoop * this.playDuration;
     }
 
-    const offset = this.relativePlayStart - relativeStart;
+    const offset = this.relativeStart + this.offset - relativeStart;
 
     // offset is < 0 when start is in the future, so offset should be 0 in that case
     if (offset < 0) return 0;
@@ -109,7 +109,7 @@ class Timeline {
   }
 
   get relativePlayStart() {
-    return this.relativeStart + this.offset;
+    return this.offset;
   }
 
   get relativePlayEnd() {
@@ -134,10 +134,7 @@ class Timeline {
    * @returns {Integer|undefined} - The index of the loop
    */
   get currentLoop() {
-    return (
-      Math.floor(Math.abs(this.absoluteCurrentTime - this.absoluteStart) / this.playDuration) ||
-      Math.floor(Math.abs((this.relativeCurrentTime - this.relativeStart) / this.playDuration))
-    );
+    return Math.floor(Math.abs(this.absoluteCurrentTime - this.absoluteStart) / this.playDuration);
   }
 
   /**

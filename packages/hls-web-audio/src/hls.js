@@ -277,8 +277,6 @@ class HLS {
     // unset start so we can start afresh
     this.nextStartPointer = undefined;
 
-    console.log('unset', this.nextStartPointer);
-
     // first disconnect everything
     this.stack.disconnectAll();
 
@@ -295,7 +293,19 @@ class HLS {
     // try the current segment
     const current = await this.scheduleAt(timeline);
 
-    // it that one is already scheduled, try the next one
+    if (current) {
+      // we have a current.. but check if this current segment is soon ending
+      // if so, schedule the upcoming one
+      const remaining = current.end - timeline.currentTime;
+
+      // TODO make configurable
+      if (remaining < 3) {
+        timeline.fastForward(remaining + 0.1);
+        await this.scheduleAt(timeline);
+      }
+    }
+
+    // the current one is already scheduled, try the next one
     if (!current) {
       timeline.fastForward(this.segmentLength / 2);
       await this.scheduleAt(timeline);
@@ -323,11 +333,11 @@ class HLS {
 
       if (Math.floor(segment.start) <= timeline.offset && segment.end > timeline.relativePlayEnd) {
         loop = true;
-        console.log('loopyes', segment.end, timeline.relativePlayEnd);
       }
 
       console.log('connect', {
         start,
+        stop,
         offset,
         timeline,
         segment: segment.src,
