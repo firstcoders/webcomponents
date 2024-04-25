@@ -17,13 +17,13 @@
 class Timeline {
   static fromController(controller) {
     const timeline = new Timeline({
-      relativeCurrentTime: controller.currentTime || 0,
-      absoluteCurrentTime: controller.ac.currentTime || 0,
-      absoluteStart: controller.adjustedStart || 0,
-      relativeStart: controller.relativeStart || 0,
+      relativeCurrentTime: controller.currentTime,
+      absoluteCurrentTime: controller.ac.currentTime,
+      absoluteStart: controller.adjustedStart,
+      relativeStart: controller.relativeStart,
       playDuration: controller.playDuration,
       audioDuration: controller.duration,
-      offset: controller.offset || 0,
+      offset: controller.offset,
     });
 
     return timeline;
@@ -38,13 +38,13 @@ class Timeline {
     offset,
     absoluteCurrentTime,
   }) {
-    this.relativeCurrentTime = relativeCurrentTime;
-    this.absoluteCurrentTime = absoluteCurrentTime;
-    this.absoluteStart = absoluteStart;
-    this.relativeStart = relativeStart;
+    this.relativeCurrentTime = relativeCurrentTime || 0;
+    this.absoluteCurrentTime = absoluteCurrentTime || 0;
+    this.absoluteStart = absoluteStart || 0;
+    this.relativeStart = relativeStart || 0;
     this.playDuration = playDuration;
     this.audioDuration = audioDuration;
-    this.offset = offset;
+    this.offset = offset || 0;
   }
 
   /**
@@ -97,15 +97,6 @@ class Timeline {
     return this.offset + this.playDuration;
   }
 
-  getRelativeTimeAt(absoluteTime) {
-    if (this.absoluteStart === undefined) return undefined;
-
-    const t = absoluteTime - this.absoluteStart;
-
-    // take looping into account
-    return (t % this.playDuration) + this.offset;
-  }
-
   fastForward(seconds) {
     this.relativeCurrentTime += seconds;
     this.absoluteCurrentTime += seconds;
@@ -122,8 +113,7 @@ class Timeline {
    * @returns {Integer|undefined} - The current time, in seconds.
    */
   get currentTime() {
-    // return this.relativeCurrentTime;
-    return this.getRelativeTimeAt(this.absoluteCurrentTime);
+    return this.relativeCurrentTime;
   }
 }
 

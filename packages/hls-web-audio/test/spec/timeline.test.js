@@ -79,16 +79,94 @@ describe('calculateOffset', () => {
       }).calculateOffset(0), // first loop
     ).equal(5);
 
-    // loop = Math.floor((this.absoluteCurrentTime - this.absoluteStart) / this.playDuration);
     expect(
       new Timeline({
         playDuration: 60,
         relativeStart: 65, // seeked
-        absoluteStart: -65, // seeked
-        absoluteCurrentTime: 0,
-        relativeCurrentTime: 0,
+        relativeCurrentTime: 65,
         offset: 0,
       }).calculateOffset(0), // second loop
     ).equal(5);
+
+    // TODO more
+  });
+});
+
+describe('get currentLoop', () => {
+  it('should return the correct values', () => {
+    expect(
+      new Timeline({
+        playDuration: 60,
+        absoluteCurrentTime: -59,
+      }).currentLoop,
+    ).equal(0);
+
+    expect(
+      new Timeline({
+        playDuration: 60,
+        absoluteCurrentTime: -65,
+      }).currentLoop,
+    ).equal(1);
+
+    expect(
+      new Timeline({
+        playDuration: 60,
+        absoluteCurrentTime: -59,
+        offset: 0.9,
+      }).currentLoop,
+    ).equal(0);
+
+    expect(
+      new Timeline({
+        relativeCurrentTime: 10.023219954648527,
+        absoluteCurrentTime: 0.023219954648526078,
+        absoluteStart: 0,
+        relativeStart: 0,
+        playDuration: 10,
+        audioDuration: 73.301873,
+        offset: 10,
+      }).currentLoop,
+    ).equal(0);
+  });
+});
+
+describe('get absolutePlayEnd', () => {
+  it('should return the correct values', () => {
+    // expect(
+    //   new Timeline({
+    //     playDuration: 10,
+    //     absoluteStart: 0,
+    //   }).absolutePlayEnd,
+    // ).equal(10);
+
+    // expect(
+    //   new Timeline({
+    //     playDuration: 10,
+    //     absoluteStart: -5,
+    //   }).absolutePlayEnd,
+    // ).equal(5);
+
+    // // in loop 7
+    // expect(
+    //   new Timeline({
+    //     relativeCurrentTime: 61,
+    //     playDuration: 10,
+    //     offset: 0,
+    //     absoluteStart: 0,
+    //   }).absolutePlayEnd,
+    // ).equal(70);
+
+    // with offset
+    expect(
+      new Timeline({
+        relativeCurrentTime: 10.023219954648527,
+        absoluteCurrentTime: 0.023219954648526078,
+        absoluteStart: 0,
+        relativeStart: 0,
+        playDuration: 10,
+        audioDuration: 73.301873,
+        offset: 10,
+      }).absolutePlayEnd,
+    ).equal(10);
   });
 });
