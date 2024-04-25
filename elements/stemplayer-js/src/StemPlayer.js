@@ -348,7 +348,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         this.#controller.loop = this.loop;
       }
       if (['offset'].indexOf(propName) !== -1) {
-        this.#controller.offset = this.offset;
+        this.#controller.offset = this.offset || 0;
       }
     });
   }
@@ -439,15 +439,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
    * @type {number}
    */
   get duration() {
-    return this.#controller?.duration || this._duration;
+    return this.#controller?.duration;
   }
 
   set duration(duration) {
-    this._duration = duration;
-
-    if (this.#controller) {
-      this.#controller.duration = duration;
-    }
+    this.#controller.duration = duration;
   }
 
   /**
