@@ -97,6 +97,10 @@ class Segment {
     this.sourceNode.buffer = audioBuffer;
     this.sourceNode.connect(destination);
 
+    // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
+    // causes the "current" segment to be seen as !isReady
+    this.sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
+
     if (loop) {
       this.sourceNode.loop = true;
       this.sourceNode.loopEnd = stop;
@@ -105,12 +109,19 @@ class Segment {
     this.sourceNode.start(start, offset);
     if (!loop) this.sourceNode.stop(stop);
 
-    // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
-    // causes the "current" segment to be seen as !isReady
-    this.sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
-
     // We no longer need the raw data, clear up memory
     this.arrayBuffer = null;
+
+    // return the actual start time
+    //    'If when is less than (AudioContext.currentTime, or if it's 0, the sound begins to play at once. The default value is 0'
+    //    (https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/start)
+    let actualAbsoluteStart = start;
+
+    if (start === 0 || start < ac.currentTime) {
+      actualAbsoluteStart = ac.currentTime;
+    }
+
+    return actualAbsoluteStart;
   }
 
   disconnect() {

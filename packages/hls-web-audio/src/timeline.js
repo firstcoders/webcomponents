@@ -48,13 +48,12 @@ class Timeline {
   }
 
   /**
-   * Calculate start relative to now.
-   * Normally the start time is just this.start. However due to seeking this can vary. It will help to understand the workings of the audiocontext timeline.
+   * Returns the start of the segment on as an absolute (audiocontext) time
    *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/currentTime
    * @see https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/start
    *
-   * @param {Integer} start - The start time in seconds
+   * @param {Integer} start - The start time
    *
    * @returns {Integer}
    */

@@ -300,10 +300,10 @@ class HLS {
     if (!segment) return undefined;
 
     try {
-      let start = this.nextStartPointer || timeline.calculateAbsoluteStart(segment.start);
+      const start = this.nextStartPointer || timeline.calculateAbsoluteStart(segment.start);
       const offset = timeline.calculateOffset(segment.start);
-      const stop = timeline.absolutePlayEnd;
-      let loop = false;
+      const stop = timeline.absolutePlayEnd; // cut off any segment that runs beyond this
+      let loop = false; // whether to loop a single segment
 
       // notify to the controller that loading has started
       this.controller.notify('loading-start', this);
@@ -316,16 +316,16 @@ class HLS {
         console.log('loopyes', segment.end, timeline.relativePlayEnd);
       }
 
-      console.log('connect', {
-        start,
-        offset,
-        timeline,
-        segment: segment.src,
-        segmentstart: segment.start,
-      });
+      // console.log('connect', {
+      //   start,
+      //   offset,
+      //   timeline,
+      //   segment: segment.src,
+      //   segmentstart: segment.start,
+      // });
 
       // connect it to the audio
-      await segment.connect({
+      const actualAbsoluteStart = await segment.connect({
         ac: this.controller.ac,
         destination: this.gainNode,
         start: start < 0 ? 0 : start,
@@ -334,12 +334,8 @@ class HLS {
         loop,
       });
 
-      if (start < 0 || start < this.controller.ac.currentTime) {
-        start = this.controller.ac.currentTime;
-      }
-
       // store the end of the current segment so we can stitch the next one at the end
-      this.nextStartPointer = start + segment.duration - offset;
+      this.nextStartPointer = actualAbsoluteStart + segment.duration - offset;
 
       if (this.nextStartPointer > timeline.absolutePlayEnd) {
         this.nextStartPointer = timeline.absolutePlayEnd;
