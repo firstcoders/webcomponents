@@ -57,39 +57,36 @@ describe('calculateOffset', () => {
   it('should return the correct value', () => {
     expect(
       new Timeline({
-        playDuration: 60,
         relativeStart: 0,
-        offset: 0,
-      }).calculateOffset(0), // first loop
+      }).calculateOffset(0),
     ).equal(0);
 
     expect(
       new Timeline({
-        playDuration: 60,
+        relativeStart: 4,
+      }).calculateOffset(0),
+    ).equal(4);
+
+    expect(
+      new Timeline({
         relativeStart: 0,
         offset: 0,
-      }).calculateOffset(10), // first loop
+      }).calculateOffset(0),
     ).equal(0);
 
     expect(
       new Timeline({
-        playDuration: 60,
-        relativeStart: 5, // seeked
-        offset: 0,
-      }).calculateOffset(0), // first loop
+        relativeStart: 0,
+        offset: 5,
+      }).calculateOffset(0),
     ).equal(5);
 
     expect(
       new Timeline({
-        playDuration: 60,
-        relativeStart: 65, // seeked
-        absoluteStart: -65, // seeked
-        relativeCurrentTime: 65,
-        offset: 0,
-      }).calculateOffset(0), // second loop
-    ).equal(5);
-
-    // TODO more
+        relativeStart: 0,
+        offset: 5,
+      }).calculateOffset(10),
+    ).equal(0);
   });
 });
 

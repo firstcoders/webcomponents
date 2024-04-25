@@ -71,15 +71,15 @@ class Timeline {
    * @returns {Integer|undefined}
    */
   calculateOffset(start) {
-    let relativeStart = start;
+    const offset = this.relativeStart - start + this.offset;
 
-    if (this.currentLoop > 0) {
-      relativeStart += this.currentLoop * this.playDuration;
-    }
+    // let relativeStart = start;
+    // if (this.currentLoop > 0) {
+    //   relativeStart += this.currentLoop * this.playDuration;
+    // }
+    // const offset = this.relativeStart + relativeStart;
+    // // offset is < 0 when start is in the future, so offset should be 0 in that case
 
-    const offset = this.relativeStart + this.offset - relativeStart;
-
-    // offset is < 0 when start is in the future, so offset should be 0 in that case
     if (offset < 0) return 0;
 
     return offset;

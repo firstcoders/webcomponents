@@ -321,7 +321,7 @@ class HLS {
 
     try {
       const start = this.nextStartPointer || timeline.calculateAbsoluteStart(segment.start);
-      const offset = segment.offset || timeline.calculateOffset(segment.start);
+      const offset = timeline.calculateOffset(segment.start);
       const stop = timeline.absolutePlayEnd; // cut off any segment that runs beyond this
       let loop = false; // whether to loop a single segment
 

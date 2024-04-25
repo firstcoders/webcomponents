@@ -93,9 +93,6 @@ class Segment {
     // update the expected duration (from m3u8 file) with the real duration from the decoded audio
     this.duration = audioBuffer.duration;
 
-    // store for later reuse
-    this.offset = offset;
-
     this.sourceNode = ac.createBufferSource();
     this.sourceNode.buffer = audioBuffer;
     this.sourceNode.connect(destination);
