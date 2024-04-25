@@ -363,7 +363,7 @@ class Controller extends Observer {
     this.adjustedStart = Math.floor((this.ac.currentTime - t) * 10) / 10;
 
     // store the relative start point
-    this.relativeStart = t;
+    this.relativeStart = Math.floor(t * 10) / 10;
   }
 
   /**

@@ -59,38 +59,41 @@ class Timeline {
    * @returns {Integer}
    */
   calculateAbsoluteStart(start) {
-    const { absoluteStart, offset, currentLoop } = this;
+    // const relativeStart = this.relativeStart + start - this.offset;
 
-    if (absoluteStart === undefined) return undefined;
+    // let absoluteStart = this.absoluteStart + relativeStart;
 
-    let realStart = absoluteStart + start - offset;
+    // if (this.currentLoop > 0) {
+    //   const loopOffset = this.currentLoop * this.playDuration;
+    //   absoluteStart += loopOffset;
+    // }
 
-    if (currentLoop > 0) {
-      realStart += currentLoop * this.playDuration;
-      realStart += offset;
+    console.log({
+      // relativeStart,
+      // absoluteStart,
+      pd: this.playDuration,
+      loop: this.currentLoop,
+      start,
+      // loopOffset,
+    });
+
+    // return absoluteStart >= 0 ? absoluteStart : 0;
+
+    let realStart = this.absoluteStart + start;
+
+    if (this.currentLoop > 0) {
+      // a segment has this property if it is being pre-loaded for playback in the near future
+      // this means that _at that time_ nLoop is still less than what it will be when playback
+      // for that segment commences - so we need to increase it
+
+      // when looping we need to take the number of loops into consideration when calculating start time
+      realStart += this.currentLoop * this.playDuration;
     }
 
     if (realStart < 0) realStart = 0;
 
     return realStart;
   }
-
-  //   {
-  //     "start": 40.00531872789116,
-  //     "offset": 0,
-  //     "stop": 40,
-  //     "currentLoop": 1,
-  //     "relativeStart": 50.00531872789116,
-  //     "timeline": {
-  //         "currentTime": 50.139410430839,
-  //         "absoluteCurrentTime": 20.139410430839,
-  //         "absoluteStart": 0,
-  //         "relativeStart": 0,
-  //         "playDuration": 20,
-  //         "audioDuration": 73.30185972789116,
-  //         "offset": 30
-  //     }
-  // }
 
   /**
    * Calculate offset by taking into consideration the start time.
@@ -141,12 +144,20 @@ class Timeline {
    * @returns {Integer|undefined} - The index of the loop
    */
   get currentLoop() {
-    let t =
-      this.absoluteStart !== undefined ? this.absoluteCurrentTime - this.absoluteStart : undefined;
+    // let t =
+    //   this.absoluteStart !== undefined ? this.absoluteCurrentTime - this.absoluteStart : undefined;
 
-    t /= this.playDuration;
+    // t /= this.playDuration;
 
-    return Math.floor(t);
+    // console.log(
+    //   'loop',
+    //   this.absoluteCurrentTime,
+    //   this.absoluteStart,
+    //   this.absoluteCurrentTime - this.absoluteStart,
+    //   (this.absoluteCurrentTime - this.absoluteStart) / this.playDuration,
+    // );
+
+    return Math.floor((this.absoluteCurrentTime - this.absoluteStart) / this.playDuration);
   }
 
   /**
