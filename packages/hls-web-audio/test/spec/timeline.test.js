@@ -83,6 +83,7 @@ describe('calculateOffset', () => {
       new Timeline({
         playDuration: 60,
         relativeStart: 65, // seeked
+        absoluteStart: -65, // seeked
         relativeCurrentTime: 65,
         offset: 0,
       }).calculateOffset(0), // second loop
@@ -167,6 +168,24 @@ describe('get absolutePlayEnd', () => {
         audioDuration: 73.301873,
         offset: 10,
       }).absolutePlayEnd,
+    ).equal(10);
+  });
+});
+
+describe('get getRelativeTimeAt', () => {
+  it('should return the correct values', () => {
+    expect(
+      new Timeline({
+        playDuration: 100,
+        absoluteStart: 0,
+      }).getRelativeTimeAt(0),
+    ).equal(0);
+
+    expect(
+      new Timeline({
+        playDuration: 100,
+        absoluteStart: -10,
+      }).getRelativeTimeAt(0),
     ).equal(10);
   });
 });

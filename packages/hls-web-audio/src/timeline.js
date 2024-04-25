@@ -113,7 +113,21 @@ class Timeline {
    * @returns {Integer|undefined} - The current time, in seconds.
    */
   get currentTime() {
-    return this.relativeCurrentTime;
+    return this.getRelativeTimeAt(this.absoluteCurrentTime);
+  }
+
+  /**
+   * Gives a relative time given an absolute time, taking into account any looping
+   * @param {Number} absoluteTime
+   * @returns {Number}
+   */
+  getRelativeTimeAt(absoluteTime) {
+    if (this.absoluteStart === undefined) return undefined;
+
+    const t = absoluteTime - this.absoluteStart;
+
+    // take looping into account
+    return (t % this.playDuration) + this.offset;
   }
 }
 

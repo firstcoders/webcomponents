@@ -93,6 +93,9 @@ class Segment {
     // update the expected duration (from m3u8 file) with the real duration from the decoded audio
     this.duration = audioBuffer.duration;
 
+    // store for later reuse
+    this.offset = offset;
+
     this.sourceNode = ac.createBufferSource();
     this.sourceNode.buffer = audioBuffer;
     this.sourceNode.connect(destination);
@@ -102,7 +105,7 @@ class Segment {
 
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
-    this.sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
+    this.sourceNode.onended = () => setTimeout(() => this.disconnect(), 0);
 
     if (loop) {
       this.sourceNode.loop = true;
@@ -142,6 +145,8 @@ class Segment {
 
       // remove reference
       this.sourceNode = null;
+
+      console.log('ended', this.src);
 
       this.currentConnectedNode = null;
     }

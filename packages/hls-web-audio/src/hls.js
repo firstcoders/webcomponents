@@ -293,21 +293,21 @@ class HLS {
     // try the current segment
     const current = await this.scheduleAt(timeline);
 
-    if (current) {
-      // we have a current.. but check if this current segment is soon ending
-      // if so, schedule the upcoming one
-      const remaining = current.end - timeline.currentTime;
+    // if (current) {
+    //   // we have a current.. but check if this current segment is soon ending
+    //   // if so, schedule the upcoming one
+    //   const remaining = current.end - timeline.currentTime;
 
-      // TODO make configurable
-      if (remaining < 3) {
-        timeline.fastForward(remaining + 0.1);
-        await this.scheduleAt(timeline);
-      }
-    }
+    //   // TODO make configurable
+    //   if (remaining < 3) {
+    //     timeline.fastForward(remaining + 0.1);
+    //     await this.scheduleAt(timeline);
+    //   }
+    // }
 
     // the current one is already scheduled, try the next one
     if (!current) {
-      timeline.fastForward(this.segmentLength / 2);
+      timeline.fastForward(5);
       await this.scheduleAt(timeline);
     }
   }
@@ -321,7 +321,7 @@ class HLS {
 
     try {
       const start = this.nextStartPointer || timeline.calculateAbsoluteStart(segment.start);
-      const offset = timeline.calculateOffset(segment.start);
+      const offset = segment.offset || timeline.calculateOffset(segment.start);
       const stop = timeline.absolutePlayEnd; // cut off any segment that runs beyond this
       let loop = false; // whether to loop a single segment
 

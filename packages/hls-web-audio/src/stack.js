@@ -79,15 +79,9 @@ export default class {
     };
 
     // ceil to make sure we do not fetch any sements with a very short remaining duration
-    const current = this.getAt(Math.ceil(t)); // TODO Math.ceil(t * 10) / 10) if to course
-    const element = getNextElement(current);
+    const current = this.getAt(Math.ceil(t * 10) / 10); // TODO Math.ceil(t * 10) / 10) if to course
 
-    // try to get the next one
-    // if (!element) {
-    //   const currentIndex = this.getIndexAt(Math.ceil(t));
-    //   const next = this.elements[currentIndex + 1];
-    //   element = getNextElement(next);
-    // }
+    const element = getNextElement(current);
 
     if (element) {
       // store a signpost that we're currently $inTransit the element
