@@ -67,12 +67,30 @@ class Timeline {
 
     if (currentLoop > 0) {
       realStart += currentLoop * this.playDuration;
+      realStart += offset;
     }
 
     if (realStart < 0) realStart = 0;
 
     return realStart;
   }
+
+  //   {
+  //     "start": 40.00531872789116,
+  //     "offset": 0,
+  //     "stop": 40,
+  //     "currentLoop": 1,
+  //     "relativeStart": 50.00531872789116,
+  //     "timeline": {
+  //         "currentTime": 50.139410430839,
+  //         "absoluteCurrentTime": 20.139410430839,
+  //         "absoluteStart": 0,
+  //         "relativeStart": 0,
+  //         "playDuration": 20,
+  //         "audioDuration": 73.30185972789116,
+  //         "offset": 30
+  //     }
+  // }
 
   /**
    * Calculate offset by taking into consideration the start time.
@@ -84,7 +102,7 @@ class Timeline {
    * @returns {Integer|undefined}
    */
   calculateOffset(start) {
-    let offset = this.relativeStart - start;
+    let offset = this.relativePlayStart - start;
 
     // offset is < 0 when start is in the future, so offset should be 0 in that case
     if (offset < 0) offset = 0;
@@ -93,11 +111,12 @@ class Timeline {
   }
 
   get absolutePlayEnd() {
-    return this.calculateAbsoluteStart(this.relativePlayEnd);
+    return this.absoluteStart + (this.currentLoop + 1) * this.playDuration;
+    // return this.calculateAbsoluteStart(this.relativeStart + this.playDuration);
   }
 
   get relativePlayStart() {
-    return this.offset;
+    return this.relativeStart + this.offset;
   }
 
   get relativePlayEnd() {

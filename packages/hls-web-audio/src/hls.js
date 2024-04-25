@@ -306,14 +306,6 @@ class HLS {
       // load the segment
       await segment.load().promise;
 
-      console.log(
-        'loopcheck',
-        segment.start,
-        timeline.offset,
-        segment.end,
-        timeline.relativePlayEnd,
-      );
-
       if (Math.floor(segment.start) <= timeline.offset && segment.end > timeline.relativePlayEnd) {
         loop = true;
         console.log('loopyes', segment.end, timeline.relativePlayEnd);
