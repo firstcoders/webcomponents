@@ -70,10 +70,7 @@ export default class {
    * @returns {Object|undefined}
    */
   consume(t) {
-    // ceil to make sure we do not fetch any sements with a very short remaining duration
-    const current = this.getAt(Math.ceil(t)); // TODO Math.ceil(t * 10) / 10) if to course
-
-    const getNextElement = () => {
+    const getNextElement = (current) => {
       if (current && !current.$inTransit && !current.isReady) {
         return current;
       }
@@ -81,7 +78,16 @@ export default class {
       return undefined;
     };
 
-    const element = getNextElement();
+    // ceil to make sure we do not fetch any sements with a very short remaining duration
+    const current = this.getAt(Math.ceil(t)); // TODO Math.ceil(t * 10) / 10) if to course
+    let element = getNextElement(current);
+
+    // try to get the next one
+    if (!element) {
+      const currentIndex = this.getIndexAt(Math.ceil(t));
+      const next = this.elements[currentIndex + 1];
+      element = getNextElement(next);
+    }
 
     if (element) {
       // store a signpost that we're currently $inTransit the element
@@ -163,26 +169,9 @@ export default class {
     return this.elements.find((s) => t >= s.start && t <= s.end);
   }
 
-  /**
-   * Recalculates the start times, taking into account any later adjustments from learning the real durations
-   * of a segment after decoding the audio data.
-   */
-  recalculateStartTimes() {
-    this.startPointer = this.initialStartTime;
-
-    this.elements.forEach((s) => {
-      // initialise start time of element
-      s.start = this.startPointer;
-
-      // increment start pointer
-      this.startPointer += s.duration;
-    });
-  }
-
   set start(start) {
     this.initialStartTime = start;
     this.disconnectAll();
-    this.recalculateStartTimes();
   }
 
   get start() {

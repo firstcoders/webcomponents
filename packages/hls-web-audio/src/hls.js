@@ -219,6 +219,16 @@ class HLS {
     });
 
     this.stack?.push(...segments);
+
+    // infer the minimum segment length, excluding the last one, which is likely truncated. This is used for scheduling
+    const min = Math.min.apply(
+      null,
+      this.stack.elements
+        .slice(0, this.stack.elements.length - 1)
+        .map((segment) => segment.duration),
+    );
+
+    this.segmentLength = min;
   }
 
   set duration(duration) {
@@ -287,7 +297,7 @@ class HLS {
 
     // it that one is already scheduled, try the next one
     if (!current) {
-      timeline.fastForward(5);
+      timeline.fastForward(this.segmentLength / 2);
       await this.scheduleAt(timeline);
     }
   }
@@ -340,10 +350,6 @@ class HLS {
       if (this.nextStartPointer > timeline.absolutePlayEnd) {
         this.nextStartPointer = timeline.absolutePlayEnd;
       }
-
-      // this.stack?.recalculateStartTimes();
-
-      // }
     } catch (err) {
       if (err.name !== 'AbortError') {
         this.controller?.notify('error', err);
