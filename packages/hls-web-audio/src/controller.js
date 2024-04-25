@@ -360,10 +360,10 @@ class Controller extends Observer {
    */
   fixAdjustedStart(t) {
     // We round as extreme precise floating point numbers were causing slight rounding(?) errors in scheduling, resulting in ticks
-    this.adjustedStart = Math.floor((this.ac.currentTime - t) * 10) / 10;
+    this.adjustedStart = Math.round((this.ac.currentTime - t) * 10) / 10;
 
     // store the relative start point
-    this.relativeStart = Math.floor(t * 10) / 10;
+    this.relativeStart = Math.round(t * 10) / 10;
   }
 
   /**

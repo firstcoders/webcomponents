@@ -59,40 +59,7 @@ class Timeline {
    * @returns {Integer}
    */
   calculateAbsoluteStart(start) {
-    // const relativeStart = this.relativeStart + start - this.offset;
-
-    // let absoluteStart = this.absoluteStart + relativeStart;
-
-    // if (this.currentLoop > 0) {
-    //   const loopOffset = this.currentLoop * this.playDuration;
-    //   absoluteStart += loopOffset;
-    // }
-
-    console.log({
-      // relativeStart,
-      // absoluteStart,
-      pd: this.playDuration,
-      loop: this.currentLoop,
-      start,
-      // loopOffset,
-    });
-
-    // return absoluteStart >= 0 ? absoluteStart : 0;
-
-    let realStart = this.absoluteStart + start;
-
-    if (this.currentLoop > 0) {
-      // a segment has this property if it is being pre-loaded for playback in the near future
-      // this means that _at that time_ nLoop is still less than what it will be when playback
-      // for that segment commences - so we need to increase it
-
-      // when looping we need to take the number of loops into consideration when calculating start time
-      realStart += this.currentLoop * this.playDuration;
-    }
-
-    if (realStart < 0) realStart = 0;
-
-    return realStart;
+    return this.absoluteStart + start - this.offset;
   }
 
   /**
@@ -105,17 +72,16 @@ class Timeline {
    * @returns {Integer|undefined}
    */
   calculateOffset(start) {
-    let offset = this.relativePlayStart - start;
+    const offset = this.relativePlayStart - start;
 
     // offset is < 0 when start is in the future, so offset should be 0 in that case
-    if (offset < 0) offset = 0;
+    if (offset < 0) return 0;
 
     return offset;
   }
 
   get absolutePlayEnd() {
     return this.absoluteStart + (this.currentLoop + 1) * this.playDuration;
-    // return this.calculateAbsoluteStart(this.relativeStart + this.playDuration);
   }
 
   get relativePlayStart() {
@@ -144,19 +110,6 @@ class Timeline {
    * @returns {Integer|undefined} - The index of the loop
    */
   get currentLoop() {
-    // let t =
-    //   this.absoluteStart !== undefined ? this.absoluteCurrentTime - this.absoluteStart : undefined;
-
-    // t /= this.playDuration;
-
-    // console.log(
-    //   'loop',
-    //   this.absoluteCurrentTime,
-    //   this.absoluteStart,
-    //   this.absoluteCurrentTime - this.absoluteStart,
-    //   (this.absoluteCurrentTime - this.absoluteStart) / this.playDuration,
-    // );
-
     return Math.floor((this.absoluteCurrentTime - this.absoluteStart) / this.playDuration);
   }
 

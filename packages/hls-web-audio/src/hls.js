@@ -264,6 +264,11 @@ class HLS {
       console.debug('Disconnecting node when audiocontext is running may cause "ticks"');
     }
 
+    // unset start so we can start afresh
+    this.nextStartPointer = undefined;
+
+    console.log('unset', this.nextStartPointer);
+
     // first disconnect everything
     this.stack.disconnectAll();
 
@@ -295,7 +300,7 @@ class HLS {
     if (!segment) return undefined;
 
     try {
-      const start = timeline.calculateAbsoluteStart(segment.start);
+      let start = this.nextStartPointer || timeline.calculateAbsoluteStart(segment.start);
       const offset = timeline.calculateOffset(segment.start);
       const stop = timeline.absolutePlayEnd;
       let loop = false;
@@ -311,27 +316,36 @@ class HLS {
         console.log('loopyes', segment.end, timeline.relativePlayEnd);
       }
 
+      console.log('connect', {
+        start,
+        offset,
+        timeline,
+        segment: segment.src,
+        segmentstart: segment.start,
+      });
+
       // connect it to the audio
       await segment.connect({
         ac: this.controller.ac,
         destination: this.gainNode,
-        start,
+        start: start < 0 ? 0 : start,
         offset,
         stop,
         loop,
       });
 
-      console.log('connect', {
-        start,
-        offset,
-        stop,
-        currentLoop: timeline.currentLoop,
-        relativeStart: segment.start,
-        timeline,
-        segment,
-      });
+      if (start < 0 || start < this.controller.ac.currentTime) {
+        start = this.controller.ac.currentTime;
+      }
 
-      this.stack?.recalculateStartTimes();
+      // store the end of the current segment so we can stitch the next one at the end
+      this.nextStartPointer = start + segment.duration - offset;
+
+      if (this.nextStartPointer > timeline.absolutePlayEnd) {
+        this.nextStartPointer = timeline.absolutePlayEnd;
+      }
+
+      // this.stack?.recalculateStartTimes();
 
       // }
     } catch (err) {
