@@ -298,7 +298,7 @@ class Controller extends Observer {
    */
   set duration(duration) {
     this._duration = duration;
-    this.notifyUpdated('duration', this.duration);
+    this.notifyUpdated('duration', this.playDuration);
   }
 
   /**

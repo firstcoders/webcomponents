@@ -71,35 +71,45 @@ class Timeline {
    * @returns {Integer|undefined}
    */
   calculateOffset(start) {
-    let x = this.relativeStart;
+    let seekStart = this.relativeStart;
+
+    console.log({ relativeStart: this.relativeStart });
 
     if (this.currentLoop > 0) {
-      x = 0;
+      seekStart = 0;
     }
 
-    const offset = x - start + this.offset;
-
-    // let relativeStart = start;
-    // if (this.currentLoop > 0) {
-    //   relativeStart += this.currentLoop * this.playDuration;
-    // }
-
-    // const offset = this.relativeStart + relativeStart;
-    // // offset is < 0 when start is in the future, so offset should be 0 in that case
+    const offset = seekStart - start + this.offset;
 
     if (offset < 0) return 0;
 
     return offset;
   }
 
+  /**
+   *  The absolute start of the play window
+   */
+  get absolutePlayStart() {
+    return this.absoluteStart;
+  }
+
+  /**
+   *  The absolute end of the play window
+   */
   get absolutePlayEnd() {
     return this.absoluteStart + (this.currentLoop + 1) * this.playDuration;
   }
 
+  /**
+   * The relative start of the play window
+   */
   get relativePlayStart() {
     return this.offset;
   }
 
+  /**
+   * The relative end of the play window
+   */
   get relativePlayEnd() {
     return this.offset + this.playDuration;
   }

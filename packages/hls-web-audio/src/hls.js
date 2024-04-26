@@ -48,6 +48,11 @@ class HLS {
     // respond to seek
     this.eSeek = this.controller.on('seek', () => this.onSeek());
 
+    this.controller.on('duration', () => {
+      console.log('duration');
+      this.onSeek();
+    });
+
     // create a gainnode for volume
     this.gainNode = this.controller.ac.createGain();
 
@@ -274,6 +279,8 @@ class HLS {
       console.debug('Disconnecting node when audiocontext is running may cause "ticks"');
     }
 
+    console.log('seek');
+
     // unset start so we can start afresh
     this.nextStartPointer = undefined;
 
@@ -293,17 +300,17 @@ class HLS {
     // try the current segment
     const current = await this.scheduleAt(timeline);
 
-    // if (current) {
-    //   // we have a current.. but check if this current segment is soon ending
-    //   // if so, schedule the upcoming one
-    //   const remaining = current.end - timeline.currentTime;
+    if (current) {
+      // we have a current.. but check if this current segment is soon ending
+      // if so, schedule the upcoming one
+      const remaining = current.end - timeline.currentTime;
 
-    //   // TODO make configurable
-    //   if (remaining < 3) {
-    //     timeline.fastForward(remaining + 0.1);
-    //     await this.scheduleAt(timeline);
-    //   }
-    // }
+      // TODO make configurable
+      if (remaining < 3) {
+        timeline.fastForward(remaining + 0.1);
+        await this.scheduleAt(timeline);
+      }
+    }
 
     // the current one is already scheduled, try the next one
     if (!current) {
