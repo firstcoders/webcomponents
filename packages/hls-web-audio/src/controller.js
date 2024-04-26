@@ -340,7 +340,7 @@ class Controller extends Observer {
     if (t < this.timeline.relativePlayStart || t > this.timeline.relativePlayEnd)
       throw new SeekOutOfRangeError();
 
-    this.fixAdjustedStart(t);
+    this.fixAdjustedStart(t - this.offset);
 
     // seek: suspend the ac before emitting the seek event: disconnecting audio nodes on a runnin ac can cause "cracks" and "pops".
     this.ac.suspend().then(() => {

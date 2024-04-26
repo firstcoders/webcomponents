@@ -88,29 +88,53 @@ describe('calculateOffset', () => {
       }).calculateOffset(10),
     ).equal(0);
 
+    // expect(
+    //   new Timeline({
+    //     relativeCurrentTime: 15.270612244897961,
+    //     absoluteCurrentTime: 60.17061224489796,
+    //     absoluteStart: 49.9,
+    //     relativeStart: 1.6,
+    //     playDuration: 10,
+    //     audioDuration: 73.301873,
+    //     offset: 5,
+    //   }).calculateOffset(0),
+    // ).equal(0);
+
+    // expect(
+    //   new Timeline({
+    //     relativeCurrentTime: 6.607528344671204,
+    //     absoluteCurrentTime: 16.207528344671204,
+    //     absoluteStart: 14.6,
+    //     relativeStart: 1.6,
+    //     playDuration: 10,
+    //     audioDuration: 73.301873,
+    //     offset: 5,
+    //   }).calculateOffset(10),
+    // ).equal(0);
+
     expect(
       new Timeline({
-        relativeCurrentTime: 15.270612244897961,
-        absoluteCurrentTime: 60.17061224489796,
-        absoluteStart: 49.9,
-        relativeStart: 1.6,
+        relativeCurrentTime: 15.250566893424036,
+        absoluteCurrentTime: 21.950566893424035,
+        absoluteStart: 1.7,
+        relativeStart: 0.1,
         playDuration: 10,
         audioDuration: 73.301873,
         offset: 5,
       }).calculateOffset(0),
-    ).equal(0);
+    ).equal(5);
 
     expect(
       new Timeline({
-        relativeCurrentTime: 6.607528344671204,
-        absoluteCurrentTime: 16.207528344671204,
-        absoluteStart: 14.6,
-        relativeStart: 1.6,
+        relativeCurrentTime: 5.9921995464852635,
+        absoluteCurrentTime: 41.19219954648526,
+        absoluteStart: 20.2,
+        relativeStart: 4.5,
         playDuration: 10,
         audioDuration: 73.301873,
         offset: 5,
-      }).calculateOffset(10),
-    ).equal(0);
+      }).calculateOffset(0),
+    ).equal(5);
   });
 });
 
