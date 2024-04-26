@@ -87,6 +87,30 @@ describe('calculateOffset', () => {
         offset: 5,
       }).calculateOffset(10),
     ).equal(0);
+
+    expect(
+      new Timeline({
+        relativeCurrentTime: 15.270612244897961,
+        absoluteCurrentTime: 60.17061224489796,
+        absoluteStart: 49.9,
+        relativeStart: 1.6,
+        playDuration: 10,
+        audioDuration: 73.301873,
+        offset: 5,
+      }).calculateOffset(0),
+    ).equal(0);
+
+    expect(
+      new Timeline({
+        relativeCurrentTime: 6.607528344671204,
+        absoluteCurrentTime: 16.207528344671204,
+        absoluteStart: 14.6,
+        relativeStart: 1.6,
+        playDuration: 10,
+        audioDuration: 73.301873,
+        offset: 5,
+      }).calculateOffset(10),
+    ).equal(0);
   });
 });
 

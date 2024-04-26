@@ -332,13 +332,15 @@ class Controller extends Observer {
    * @fires Object#seek
    */
   set currentTime(t) {
+    console.log('set currenttime', t);
+
     if (typeof this.duration !== 'number' || t < 0 || t > this.duration)
       throw new Error(`CurrentTime ${t} should be between 0 and duration ${this.duration}`);
 
     if (t < this.timeline.relativePlayStart || t > this.timeline.relativePlayEnd)
       throw new SeekOutOfRangeError();
 
-    this.fixAdjustedStart(t - this.offset);
+    this.fixAdjustedStart(t);
 
     // seek: suspend the ac before emitting the seek event: disconnecting audio nodes on a runnin ac can cause "cracks" and "pops".
     this.ac.suspend().then(() => {
