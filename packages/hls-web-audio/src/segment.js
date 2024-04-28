@@ -80,7 +80,7 @@ class Segment {
     return this.loadHandle;
   }
 
-  async connect({ destination, ac, start, offset, stop }) {
+  async connect({ destination, ac, start, offset, stop, loop }) {
     if (this.sourceNode) throw new Error('Cannot connect a segment twice');
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
@@ -93,22 +93,23 @@ class Segment {
     sourceNode.buffer = audioBuffer;
     sourceNode.connect(destination);
 
-    // sourceNode.stop(controller.adjustedEnd);
-
-    console.log(this.start, { start, offset, stop });
-
-    sourceNode.start(start, offset);
-    sourceNode.stop(stop);
+    // We no longer need the raw data, clear up memory
+    this.arrayBuffer = null;
 
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
     sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
 
+    if (loop) {
+      sourceNode.loop = true;
+      sourceNode.loopEnd = stop;
+    }
+
+    sourceNode.start(start, offset);
+    if (!loop) this.sourceNode.stop(stop);
+
     // store reference
     this.sourceNode = sourceNode;
-
-    // We no longer need the raw data, clear up memory
-    this.arrayBuffer = null;
   }
 
   disconnect() {
