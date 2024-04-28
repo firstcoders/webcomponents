@@ -269,16 +269,16 @@ class HLS {
       const start = timeframe.calculateRealStart(segment);
       const offset = timeframe.calculateOffset(segment);
       const stop = timeframe.adjustedEnd;
-      let loop = false; // whether to loop a single segment
 
+      // whether to loop a single segment
+      let loopEnd;
       if (Math.floor(segment.start) <= timeframe.offset && segment.end > timeframe.end) {
-        console.log('loop yes');
-        loop = true;
+        loopEnd = timeframe.end - timeframe.offset;
       }
 
       // connect it to the audio
       // @todo reverse api to controller.connect(segment) or this.connect(segment)
-      await segment.connect({ ac: controller.ac, destination, start, offset, stop, loop });
+      await segment.connect({ ac: controller.ac, destination, start, offset, stop, loopEnd });
 
       this.stack?.recalculateStartTimes();
     } catch (err) {
