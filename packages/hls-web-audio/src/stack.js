@@ -16,11 +16,6 @@
  */
 export default class {
   /**
-   * @property {Number} startPointer - an internal pointer pointing to where the current element is
-   */
-  currentPointer = 0;
-
-  /**
    * @property {Array} elements - The ordered elements that jointly compose this HLS track
    * @private
    */
@@ -80,16 +75,18 @@ export default class {
    * Try to get the next element that is not ready
    * @returns {Object|undefined}
    */
-  consume() {
-    const { current, next } = this;
+  consume(timeframe) {
+    const iCurrent = this.getIndexAt(timeframe.currentTime);
+    const current = this.elements[iCurrent];
+    const next = this.elements[iCurrent + 1];
 
     const getNextElement = () => {
       if (current && !current.$inTransit && !current.isReady) {
         return current;
       }
 
-      // TODO check if in play window (offset, playDuration)
-      if (next && !next.$inTransit && !next.isReady) {
+      // ensure the next is in the play window (<timeframe.end)
+      if (next && next.start < timeframe.end && !next.$inTransit && !next.isReady) {
         return next;
       }
 
@@ -117,20 +114,6 @@ export default class {
   }
 
   /**
-   * Update the current time pointer
-   *
-   * @param {Number} t - the current time
-   */
-  set currentTime(t) {
-    this._currentTime = t;
-    this.currentPointer = this.getIndexAt(t);
-  }
-
-  get currentTime() {
-    return this._currentTime;
-  }
-
-  /**
    * The default duration as defined by the audio segments
    */
   get totalDuration() {
@@ -148,30 +131,6 @@ export default class {
 
   set duration(duration) {
     this.durationOverride = duration;
-  }
-
-  /**
-   * @returns {Object} The current element, based on the currentTime
-   */
-  get current() {
-    return this.elements[this.currentPointer];
-  }
-
-  /**
-   * @returns {Object} The next elements, based on the currentTime, and a margin
-   */
-  get next() {
-    // return this.currentPointer >= 0 ? this.elements?.[this.currentPointer + 1] : undefined;
-    if (this.currentPointer !== -1) {
-      const i = this.currentPointer + 1;
-      if (i >= 0) return this.elements?.[i];
-    }
-
-    // check if one is upcoming in the near future
-    const iNear = this.getIndexAt(this.currentTime + this.nextMarginSeconds);
-    if (iNear >= 0) return this.elements?.[iNear];
-
-    return undefined;
   }
 
   /**

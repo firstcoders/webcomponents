@@ -253,11 +253,8 @@ class HLS {
   async scheduleAt(timeframe) {
     const { gainNode: destination, controller } = this;
 
-    // update the currenttime, so the stack knows what the current and next segment it
-    this.stack.currentTime = timeframe.currentTime;
-
     // get the next segment
-    const segment = this.stack.consume();
+    const segment = this.stack.consume(timeframe);
 
     // if we dont get one, there's nothing to do at this time
     if (!segment) return;
@@ -269,9 +266,9 @@ class HLS {
       // load the segment
       await segment.load().promise;
 
-      const start = controller.calculateRealStart(segment);
-      const offset = controller.calculateOffset(segment);
-      const stop = controller.adjustedEnd; // todo somehow take into consideration next loop
+      const start = timeframe.calculateRealStart(segment);
+      const offset = timeframe.calculateOffset(segment);
+      const stop = timeframe.adjustedEnd;
 
       // connect it to the audio
       // @todo reverse api to controller.connect(segment) or this.connect(segment)
