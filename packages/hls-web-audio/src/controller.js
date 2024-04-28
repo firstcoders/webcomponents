@@ -19,6 +19,7 @@ import AudioContext from './lib/audio-context.js';
 import { fadeIn, fadeOut } from './lib/fade.js';
 import isIOS from './lib/isIOS';
 import unmuteAudioContext from './lib/unmuteAudioContext.js';
+import Timeframe from './timeframe.js';
 
 /**
  * A controller is used to control the playback of one or more HLS tracks
@@ -41,6 +42,8 @@ class Controller extends Observer {
    * @private
    */
   hls = [];
+
+  #offset = 0;
 
   /**
    * @constructor
@@ -155,7 +158,7 @@ class Controller extends Observer {
     if (typeof this.duration !== 'number') throw new Error('Cannot play before loading content');
     if (this.isBuffering) throw new Error('The player is buffering');
     // seek to 0 when starting playback for the first time
-    if (typeof this.adjustedStart !== 'number') this.fixAdjustedStart(0);
+    if (typeof this.adjustedStart !== 'number') this.fixAdjustedStart(this.offset);
 
     if (this.ac.state === 'suspended') await this.ac.resume();
 
@@ -186,11 +189,6 @@ class Controller extends Observer {
     // Detect if we're reached the end
     if (!this.loop && this.rawCurrentTime > this.duration) {
       return this.end();
-    }
-
-    // if we're in the next loop, forward the adjusted start one whole cycle so that we're back
-    if (this.nLoop > 0) {
-      this.adjustedStart += this.duration;
     }
 
     this.fireEvent('timeupdate', {
@@ -270,13 +268,13 @@ class Controller extends Observer {
    *
    * @returns {Int} - The max of the duration of the hls tracks that are controlled by this controller
    */
-  get duration() {
+  get audioDuration() {
     // if the duration was manually set, return that
-    if (this._duration) return this._duration;
+    // if (this._duration) return this._duration;
 
     const max = Math.max.apply(
       null,
-      this.hls.map((hls) => hls.end).filter((duration) => !!duration),
+      this.hls.map((hls) => hls.totalDuration).filter((duration) => !!duration),
     );
 
     // store the previously calculated value
@@ -291,8 +289,29 @@ class Controller extends Observer {
    * @param {Integer} duration - The duration in seconds
    */
   set duration(duration) {
-    this._duration = duration;
-    this.notifyUpdated('duration', duration);
+    this.durationOverride = duration;
+    this.notifyUpdated('duration', this.duration);
+  }
+
+  get duration() {
+    return this.audioDuration;
+  }
+
+  get playDuration() {
+    return this.durationOverride || this.audioDuration;
+  }
+
+  /**
+   * @param {Integer} duration - The offset in seconds
+   */
+  set offset(offset) {
+    console.log('offset');
+    this.#offset = offset;
+    this.notifyUpdated('duration', this.duration);
+  }
+
+  get offset() {
+    return this.#offset;
   }
 
   /**
@@ -306,7 +325,15 @@ class Controller extends Observer {
    * @returns {Integer|undefined} - The current time, in seconds.
    */
   get currentTime() {
-    return this.rawCurrentTime % this.duration;
+    if (this.rawCurrentTime < this.offset) {
+      this.fixAdjustedStart(this.offset);
+    }
+
+    if (this.rawCurrentTime >= this.offset + this.playDuration) {
+      this.fixAdjustedStart(this.offset);
+    }
+
+    return this.rawCurrentTime;
   }
 
   /**
@@ -328,6 +355,41 @@ class Controller extends Observer {
     });
   }
 
+  get currentTimeframe() {
+    return new Timeframe({
+      adjustedStart: this.adjustedStart,
+      currentTime: this.currentTime,
+      // playDuration: this.playDuration,
+    });
+  }
+
+  /**
+   * Calculates future relative time by taking into accont offset and playDuration
+   * @param {Number} t
+   * @returns
+   */
+  // calculateFutureTime(t = 5) {
+  //   const currentTime = this.ac.currentTime + t;
+  //   let adjustedStart = this.getAdjustedStartAt(currentTime);
+  //   let rawCurrentTime = currentTime - adjustedStart;
+
+  //   if (rawCurrentTime < this.offset) {
+  //     adjustedStart = this.getAdjustedStartAt(this.offset);
+  //     rawCurrentTime = currentTime - adjustedStart;
+  //   }
+
+  //   if (rawCurrentTime >= this.offset + this.playDuration) {
+  //     adjustedStart = this.getAdjustedStartAt(this.offset);
+  //     rawCurrentTime = currentTime - adjustedStart;
+  //   }
+
+  //   return currentTime - adjustedStart;
+  // }
+
+  // getAdjustedStartAt(t, acCurrentTime) {
+  //   return Math.floor(acCurrentTime || this.ac.currentTime - t * 10) / 10;
+  // }
+
   /**
    * @returns {Integer|undefined} - The current time, in seconds, without taking loop into consideration
    */
@@ -341,7 +403,7 @@ class Controller extends Observer {
    */
   fixAdjustedStart(t) {
     // We round as extreme precise floating point numbers were causing slight rounding(?) errors in scheduling, resulting in ticks
-    this.adjustedStart = Math.floor((this.ac.currentTime - t) * 10) / 10;
+    this.adjustedStart = this.ac.currentTime - t;
   }
 
   /**
@@ -376,26 +438,15 @@ class Controller extends Observer {
    *
    * @param {Integer} segment - The segment
    * @param {Integer} segment.start - The start time in seconds
-   * @param {Integer} segment.isInNextLoop - Whether to schedule for the upcoming loop
    *
    * @returns {Integer|undefined}
    */
-  calculateRealStart({ start, isInNextLoop }) {
+  calculateRealStart({ start }) {
     const { adjustedStart } = this;
 
     if (adjustedStart === undefined) return undefined;
 
     let realStart = adjustedStart + start;
-
-    let { nLoop } = this;
-
-    // a segment has this property if it is being pre-loaded for playback in the near future
-    // this means that _at that time_ nLoop is still less than what it will be when playback
-    // for that segment commences - so we need to increase it
-    if (isInNextLoop) nLoop += 1;
-
-    // when looping we need to take the number of loops into consideration when calculating start time
-    realStart += nLoop * this.duration;
 
     if (realStart < 0) realStart = 0;
 
@@ -411,14 +462,13 @@ class Controller extends Observer {
    * @param {Integer} t
    * @returns {Integer|undefined}
    */
-  calculateOffset({ start, isInNextLoop }) {
+  calculateOffset({ start }) {
     if (this.currentTime === undefined) return undefined;
 
     let offset = this.currentTime - start;
 
     // offset is < 0 when start is in the future, so offset should be 0 in that case
-    // if isInNextLoop is true, then the segment is being pre-loaded and we want to play all of it so offset should be 0
-    if (offset < 0 || isInNextLoop) offset = 0;
+    if (offset < 0) offset = 0;
 
     return offset;
   }
@@ -511,6 +561,10 @@ class Controller extends Observer {
       this.fireEvent(property, newvalue);
       this.$notifyUpdatedPropertyCache[property] = newvalue;
     }
+  }
+
+  get adjustedEnd() {
+    return this.adjustedStart + this.offset + this.playDuration;
   }
 }
 

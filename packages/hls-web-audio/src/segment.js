@@ -16,11 +16,6 @@
  */
 class Segment {
   /**
-   * @param {Bool} - signpost that indicates that the segment is to be prepared for playback in the upcoming loop
-   */
-  isInNextLoop = false;
-
-  /**
    * @param {Object} param - The params
    * @param {Object} param.src - The src url
    * @param {Object} param.duration - The duration
@@ -85,11 +80,10 @@ class Segment {
     return this.loadHandle;
   }
 
-  async connect({ destination, controller }) {
+  async connect({ destination, ac, start, offset, stop }) {
     if (this.sourceNode) throw new Error('Cannot connect a segment twice');
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
-    const { ac } = controller;
     const audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
 
     // update the expected duration (from m3u8 file) with the real duration from the decoded audio
@@ -99,10 +93,12 @@ class Segment {
     sourceNode.buffer = audioBuffer;
     sourceNode.connect(destination);
 
-    const start = controller.calculateRealStart(this);
-    const offset = controller.calculateOffset(this);
+    // sourceNode.stop(controller.adjustedEnd);
+
+    console.log(this.start, { start, offset, stop });
 
     sourceNode.start(start, offset);
+    sourceNode.stop(stop);
 
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
@@ -113,9 +109,6 @@ class Segment {
 
     // We no longer need the raw data, clear up memory
     this.arrayBuffer = null;
-
-    // unset signpost
-    this.isInNextLoop = undefined;
   }
 
   disconnect() {

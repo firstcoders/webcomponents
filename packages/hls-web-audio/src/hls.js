@@ -177,12 +177,6 @@ class HLS {
     this.stack?.push(
       ...sources.map((source) => new Segment({ ...source, fetchOptions: this.fetchOptions })),
     );
-
-    // const [first] = this.stack.elements;
-
-    // const virtual = new Segment({ src: first.src, duration: first.duration });
-    // virtual.$isVirtual = true;
-    // this.stack?.push(virtual);
   }
 
   set duration(duration) {
@@ -191,12 +185,21 @@ class HLS {
   }
 
   /**
-   * Gets the duration of the hls track
+   * Gets the playback duration
    *
    * @returns Int
    */
   get duration() {
     return this.stack.duration;
+  }
+
+  /**
+   * Gets the playback duration
+   *
+   * @returns Int
+   */
+  get totalDuration() {
+    return this.stack.totalDuration;
   }
 
   /**
@@ -239,10 +242,19 @@ class HLS {
    * Handles a controller's "timeupdate" event
    */
   async runSchedulePass() {
+    // schedule segments that are needed now
+    await this.scheduleAt(this.controller.currentTimeframe);
+
+    // schedule segments that may be needed in the next loop
+    // todo prevent buffering
+    // await this.scheduleAt(this.controller.calculateFutureTime(5));
+  }
+
+  async scheduleAt(timeframe) {
     const { gainNode: destination, controller } = this;
 
     // update the currenttime, so the stack knows what the current and next segment it
-    this.stack.currentTime = controller.currentTime;
+    this.stack.currentTime = timeframe.currentTime;
 
     // update the loop property
     this.stack.loop = controller.loop;
@@ -260,9 +272,13 @@ class HLS {
       // load the segment
       await segment.load().promise;
 
+      const start = controller.calculateRealStart(segment);
+      const offset = controller.calculateOffset(segment);
+      const stop = controller.adjustedEnd; // todo somehow take into consideration next loop
+
       // connect it to the audio
       // @todo reverse api to controller.connect(segment) or this.connect(segment)
-      await segment.connect({ controller, destination });
+      await segment.connect({ ac: controller.ac, destination, start, offset, stop });
 
       this.stack?.recalculateStartTimes();
     } catch (err) {
@@ -300,14 +316,16 @@ class HLS {
    * Whether the track can play the current semgent based on currentTime
    */
   get canPlay() {
-    return this.stack.current?.isReady;
+    const current = this.stack.getAt(this.controller.currentTime);
+    return current?.isReady;
   }
 
   /**
    * Whether the track should and can play (depends on whether there is a current segment)
    */
   get shouldAndCanPlay() {
-    return !this.stack.current || this.stack.current?.isReady;
+    const current = this.stack.getAt(this.controller.currentTime);
+    return !current || current?.isReady;
   }
 }
 

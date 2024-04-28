@@ -81,23 +81,25 @@ export default class {
    * @returns {Object|undefined}
    */
   consume() {
-    const { current, next, first } = this;
+    const { current, next } = this;
 
     const getNextElement = () => {
       if (current && !current.$inTransit && !current.isReady) {
         return current;
       }
+
+      // TODO check if in play window (offset, playDuration)
       if (next && !next.$inTransit && !next.isReady) {
         return next;
       }
 
       // when looping, when we no longer have a next element, this means that we're nearing the end
       // we then want to pre-load the first element so that we get a smooth transition that does not halt playback
-      if (this.loop && !next && !first.$inTransit && !first.isReady) {
-        // mark the element for scheduling in the upcoming loop
-        first.isInNextLoop = true;
-        return first;
-      }
+      // if (this.loop && !next && !first.$inTransit && !first.isReady) {
+      //   // mark the element for scheduling in the upcoming loop
+      //   first.isInNextLoop = true;
+      //   return first;
+      // }
 
       return undefined;
     };
@@ -137,12 +139,19 @@ export default class {
   }
 
   /**
+   * The default duration as defined by the audio segments
+   */
+  get totalDuration() {
+    return this.startPointer;
+  }
+
+  /**
    * Get the total duration
    *
    * @returns {Number|undefined}
    */
   get duration() {
-    return this.durationOverride || this.startPointer;
+    return this.durationOverride || this.totalDuration;
   }
 
   set duration(duration) {
@@ -238,6 +247,9 @@ export default class {
     });
   }
 
+  /**
+   * @deprecated
+   */
   set start(start) {
     this.initialStartTime = start;
     this.disconnectAll();
@@ -246,5 +258,15 @@ export default class {
 
   get start() {
     return this.initialStartTime;
+  }
+
+  set offset(offset) {
+    this._offset = offset;
+    this.disconnectAll();
+    this.recalculateStartTimes();
+  }
+
+  get offset() {
+    return this._offset;
   }
 }
