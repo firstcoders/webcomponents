@@ -187,7 +187,7 @@ class Controller extends Observer {
     if (this.tTick) this.untick();
 
     // Detect if we're reached the end
-    if (!this.loop && this.rawCurrentTime > this.duration) {
+    if (this.currentTime > this.offset + this.playDuration) {
       return this.end();
     }
 
@@ -315,13 +315,6 @@ class Controller extends Observer {
   }
 
   /**
-   * @returns {Integer|undefined} - The index of the loop
-   */
-  get nLoop() {
-    return Math.floor(this.rawCurrentTime / this.duration);
-  }
-
-  /**
    * @returns {Integer|undefined} - The current time, in seconds.
    */
   get currentTime() {
@@ -329,7 +322,7 @@ class Controller extends Observer {
       this.fixAdjustedStart(this.offset);
     }
 
-    if (this.rawCurrentTime >= this.offset + this.playDuration) {
+    if (this.loop && this.rawCurrentTime >= this.offset + this.playDuration) {
       this.fixAdjustedStart(this.offset);
     }
 

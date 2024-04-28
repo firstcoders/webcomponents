@@ -256,9 +256,6 @@ class HLS {
     // update the currenttime, so the stack knows what the current and next segment it
     this.stack.currentTime = timeframe.currentTime;
 
-    // update the loop property
-    this.stack.loop = controller.loop;
-
     // get the next segment
     const segment = this.stack.consume();
 
