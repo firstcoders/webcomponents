@@ -47,6 +47,12 @@ class HLS {
     // respond to seek
     this.eSeek = this.controller.on('seek', () => this.onSeek());
 
+    // ensure when the duration changes (e.g. because of offset + play duration), we disconnect any scheduled nodes
+    // this is because the parameters of those segments may have changed (such as stop time, loop etc)
+    this.controller.on('duration', () => {
+      this.stack.disconnectAll();
+    });
+
     // create a gainnode for volume
     this.gainNode = this.controller.ac.createGain();
 

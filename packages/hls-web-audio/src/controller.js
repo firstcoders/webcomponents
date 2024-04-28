@@ -304,9 +304,9 @@ class Controller extends Observer {
   /**
    * @param {Integer} duration - The offset in seconds
    */
-  set offset(offset) {
-    console.log('offset');
+  set offset(offset = 0) {
     this.#offset = offset;
+    this.notifyUpdated('offset', this.offset);
     this.notifyUpdated('duration', this.duration);
   }
 
@@ -336,6 +336,10 @@ class Controller extends Observer {
    * @fires Object#seek
    */
   set currentTime(t) {
+    this.#setCurrentTime(t);
+  }
+
+  #setCurrentTime(t) {
     if (typeof this.duration !== 'number' || t < 0 || t > this.duration)
       throw new Error(`CurrentTime ${t} should be between 0 and duration ${this.duration}`);
 

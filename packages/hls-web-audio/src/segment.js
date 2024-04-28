@@ -84,7 +84,7 @@ class Segment {
     if (this.sourceNode) throw new Error('Cannot connect a segment twice');
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
-    console.log(this.start, { start, offset, stop, loopEnd });
+    console.log(this.start, { start, offset, stop, act: ac.currentTime });
 
     const audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
 
@@ -103,7 +103,7 @@ class Segment {
 
     // disconnect with a timeout, otherwise we get a situation whether the removal of the sourceNode
     // causes the "current" segment to be seen as !isReady
-    sourceNode.onended = () => setTimeout(() => this.disconnect(), 500);
+    sourceNode.onended = () => setTimeout(() => this.disconnect(), 0);
 
     if (loopEnd > 0) {
       sourceNode.loop = true;
