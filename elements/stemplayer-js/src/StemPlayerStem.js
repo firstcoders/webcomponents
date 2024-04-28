@@ -142,6 +142,8 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
       controller,
       volume: this.volume,
       fetchOptions,
+      offset: 10,
+      duration: 10,
     });
 
     this.dispatchEvent(
@@ -281,7 +283,6 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
             .barWidth=${styles.barWidth}
             .barGap=${styles.barGap}
             .pixelRatio=${styles.devicePixelRatio}
-            .duration=${this.duration}
           ></soundws-waveform>`
         : ''}
       <div class="w2 flexNoShrink"></div>

@@ -131,6 +131,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       duration: { type: Number },
 
       /**
+       * the offset
+       */
+      offset: { type: Number },
+
+      /**
        * Allows looping (experimental)
        */
       loop: { type: Boolean },
@@ -342,6 +347,12 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       if (['loop'].indexOf(propName) !== -1) {
         this.#controller.loop = this.loop;
       }
+      if (['offset'].indexOf(propName) !== -1) {
+        this.#controller.offset = this.offset;
+      }
+      if (['duration'].indexOf(propName) !== -1) {
+        this.#controller.duration = this.duration;
+      }
     });
   }
 
@@ -430,17 +441,17 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
    * Gets the duration
    * @type {number}
    */
-  get duration() {
-    return this.#controller?.duration || this._duration;
-  }
+  // get duration() {
+  //   return this.#controller?.duration || this._duration;
+  // }
 
-  set duration(duration) {
-    this._duration = duration;
+  // set duration(duration) {
+  //   this._duration = duration;
 
-    if (this.#controller) {
-      this.#controller.duration = duration;
-    }
-  }
+  //   if (this.#controller) {
+  //     this.#controller.duration = duration;
+  //   }
+  // }
 
   /**
    * Sets the currentTime to a pct of total duration, seeking to that time
