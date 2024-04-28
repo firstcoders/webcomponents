@@ -241,8 +241,13 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     });
 
     controller.on('pause-start', () => {
-      this.isLoading = true;
-      this.dispatchEvent(new Event('loading-start'));
+      setTimeout(() => {
+        // prevent loader from showing when the controller is only buffering for a short time
+        if (controller.isBuffering) {
+          this.isLoading = true;
+          this.dispatchEvent(new Event('loading-start'));
+        }
+      }, 150);
     });
 
     controller.on('pause-end', () => {
