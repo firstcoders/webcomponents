@@ -19,6 +19,7 @@ export class SoundwsWaveform extends LitElement {
         height: 100%;
         width: 100%;
         max-width: 100%;
+        overflow: hidden;
       }
 
       .container {
@@ -32,21 +33,6 @@ export class SoundwsWaveform extends LitElement {
         height: 100%;
         width: 100%;
         top: -100%;
-      }
-
-      .region-mask {
-        position: absolute;
-        background-color: var(
-          --soundws-waveform-region-mask-background-color,
-          rgba(0, 0, 0, 0.8)
-        );
-        height: 100%;
-        width: 100%;
-        z-index: 999;
-      }
-
-      .region-highlight {
-        position: absolute;
         background-color: var(
           --soundws-waveform-region-highlight-background-color,
           rgba(255, 255, 255, 0.1)
@@ -59,6 +45,7 @@ export class SoundwsWaveform extends LitElement {
           --soundws-waveform-region-highlight-border-color,
           rgba(255, 255, 255, 0.5)
         );
+        box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.7);
       }
     `;
   }
@@ -172,20 +159,10 @@ export class SoundwsWaveform extends LitElement {
   render() {
     return html` <div class="container"></div>
       ${this.regionOffset && this.regionDuration
-        ? html`<div class="region">
-            <div
-              class="region-mask"
-              style="clip-path: polygon(0% 0%, 0% 100%, ${this
-                .regionLeft} 100%, ${this.regionLeft} 0%, calc(${this
-                .regionLeft} + ${this.regionWidth}) 0%, calc(${this
-                .regionLeft} + ${this
-                .regionWidth}) 100%, 25% 100%, 25% 100%, 100% 100%, 100% 0%)"
-            ></div>
-            <div
-              class="region-highlight"
-              style="left: ${this.regionLeft}; width: ${this.regionWidth}; "
-            ></div>
-          </div>`
+        ? html`<div
+            class="region"
+            style="left: ${this.regionLeft}; width: ${this.regionWidth};"
+          ></div>`
         : ''}`;
   }
 
