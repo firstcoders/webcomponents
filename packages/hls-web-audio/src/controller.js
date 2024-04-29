@@ -97,7 +97,7 @@ class Controller extends Observer {
     this.desiredState = 'suspended';
 
     // set the duration, if supplied
-    if (duration) this.duration = duration;
+    if (duration) this.playDuration = duration;
 
     this.loop = loop;
   }
@@ -288,17 +288,17 @@ class Controller extends Observer {
    * Gives the option to override the duration
    * @param {Integer} duration - The duration in seconds
    */
-  set duration(duration) {
+  set playDuration(duration) {
     this.durationOverride = duration;
-    this.notifyUpdated('duration', this.duration);
-  }
-
-  get duration() {
-    return this.audioDuration;
+    this.notifyUpdated('playDuration', this.playDuration);
   }
 
   get playDuration() {
     return this.durationOverride || this.audioDuration;
+  }
+
+  get duration() {
+    return this.audioDuration;
   }
 
   /**
@@ -307,7 +307,6 @@ class Controller extends Observer {
   set offset(offset = 0) {
     this.#offset = offset;
     this.notifyUpdated('offset', this.offset);
-    this.notifyUpdated('duration', this.duration);
   }
 
   get offset() {
