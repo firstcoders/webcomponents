@@ -96,6 +96,9 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
        * Used to determine whether the DOM has been initialised
        */
       _rowHeight: { state: true },
+
+      regionOffset: { type: Number },
+      regionDuration: { type: Number },
     };
   }
 
@@ -142,8 +145,6 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
       controller,
       volume: this.volume,
       fetchOptions,
-      offset: 10,
-      duration: 10,
     });
 
     this.dispatchEvent(
@@ -283,6 +284,8 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
             .barWidth=${styles.barWidth}
             .barGap=${styles.barGap}
             .pixelRatio=${styles.devicePixelRatio}
+            .regionOffset=${this.regionOffset}
+            .regionDuration=${this.regionDuration}
           ></soundws-waveform>`
         : ''}
       <div class="w2 flexNoShrink"></div>

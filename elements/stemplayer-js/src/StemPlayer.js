@@ -241,13 +241,14 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     });
 
     controller.on('pause-start', () => {
+      // prevent showing of loader if only buffering for a short period
       setTimeout(() => {
-        // prevent loader from showing when the controller is only buffering for a short time
         if (controller.isBuffering) {
           this.isLoading = true;
-          this.dispatchEvent(new Event('loading-start'));
         }
       }, 150);
+
+      this.dispatchEvent(new Event('loading-start'));
     });
 
     controller.on('pause-end', () => {
@@ -283,6 +284,18 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     controller.on('duration', duration => {
       this.#updateChildren({
         duration,
+      });
+    });
+
+    controller.on('offset', () => {
+      this.#updateChildren({
+        regionOffset: controller.offset,
+      });
+    });
+
+    controller.on('playDuration', () => {
+      this.#updateChildren({
+        regionDuration: controller.playDuration,
       });
     });
 
@@ -356,7 +369,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         this.#controller.offset = this.offset;
       }
       if (['duration'].indexOf(propName) !== -1) {
-        this.#controller.duration = this.duration;
+        this.#controller.playDuration = this.duration;
       }
     });
   }

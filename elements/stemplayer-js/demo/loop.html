@@ -13,10 +13,10 @@
       import 'lit';
       import '../stemplayer.js';
     </script>
-    <stemplayer-js loop="loop" offset="5" duration="10" >
+    <stemplayer-js loop="loop" duration="3" offset="5">
       <stemplayer-js-controls
         slot="header"
-        label="Demo track"
+        label="Demo tr115ck"
       ></stemplayer-js-controls>
       <stemplayer-js-stem
         label="Drums A"
@@ -60,7 +60,23 @@
       stemplayer.addEventListener('peaks', (peaks) => {
         console.log(peaks)
       })
+
+      // eslint-disable-next-line no-unused-vars
+      function setRegion(offset, duration) {
+        console.log('setregion', offset, duration);
+        stemplayer.offset = offset
+        stemplayer.duration = duration
+      }
+
+      // eslint-disable-next-line no-unused-vars
+      function unsetRegion(offset, duration) {
+        console.log('unsetRegion', offset, duration);
+        stemplayer.offset = undefined
+        stemplayer.duration = undefined
+      }
     </script>
   </body>
   <button onclick="document.querySelector('stemplayer-js').loop = !document.querySelector('stemplayer-js').loop">loop</button>
+  <button onclick="setRegion(5, 10)">setRegion</button>
+  <button onclick="unsetRegion()">unsetRegion</button>
 </html>

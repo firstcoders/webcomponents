@@ -24,6 +24,41 @@ export class SoundwsWaveform extends LitElement {
       .container {
         height: 100%;
         min-height: var(--soundws-waveform-min-height, 25px);
+        overflow: hidden;
+      }
+
+      .region {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        top: -100%;
+      }
+
+      .region-mask {
+        position: absolute;
+        background-color: var(
+          --soundws-waveform-region-mask-background-color,
+          rgba(0, 0, 0, 0.5)
+        );
+        height: 100%;
+        width: 100%;
+        z-index: 999;
+      }
+
+      .region-highlight {
+        position: absolute;
+        background-color: var(
+          --soundws-waveform-region-highlight-background-color,
+          rgba(255, 255, 255, 0.3)
+        );
+        height: 100%;
+        z-index: 1000;
+        border-width: 0 1px 0 1px;
+        border-style: solid;
+        border-color: var(
+          --soundws-waveform-region-highlight-border-color,
+          white
+        );
       }
     `;
   }
@@ -31,6 +66,8 @@ export class SoundwsWaveform extends LitElement {
   static properties = {
     src: { type: String },
     duration: { type: Number },
+    regionOffset: { type: Number },
+    regionDuration: { type: Number },
     progress: { type: Number },
     waveColor: { type: String },
     progressColor: { type: String },
@@ -44,6 +81,9 @@ export class SoundwsWaveform extends LitElement {
      * Padding reduces the maximum waveform height to create a padding effect
      */
     padding: { type: Number },
+
+    regionLeft: { state: true },
+    regionWidth: { state: true },
   };
 
   constructor() {
@@ -78,6 +118,7 @@ export class SoundwsWaveform extends LitElement {
         this.shadowRoot.firstElementChild,
         () => {
           this.drawPeaks();
+          this.drawRegion();
         },
       );
     }, 0);
@@ -98,6 +139,10 @@ export class SoundwsWaveform extends LitElement {
       }
       if (propName === 'scaleY' || propName === 'peaks') {
         this.drawPeaks();
+        this.drawRegion();
+      }
+      if (propName === 'regionOffset' || propName === 'regionDuration') {
+        this.drawRegion();
       }
       if (
         [
@@ -125,7 +170,16 @@ export class SoundwsWaveform extends LitElement {
   }
 
   render() {
-    return html`<div class="container"></div>`;
+    return html` <div class="container"></div>
+      ${this.regionOffset && this.regionDuration
+        ? html`<div class="region">
+            <div class="region-mask"></div>
+            <div
+              class="region-highlight"
+              style="left: ${this.regionLeft}; width: ${this.regionWidth};"
+            ></div>
+          </div>`
+        : ''}`;
   }
 
   /**
@@ -251,6 +305,15 @@ export class SoundwsWaveform extends LitElement {
         }),
       );
     });
+  }
+
+  drawRegion() {
+    // update the region left and width
+    if (this.peaks?.duration) {
+      const pixelsPerSecond = this.offsetWidth / this.peaks.duration;
+      this.regionLeft = `${pixelsPerSecond * this.regionOffset}px`;
+      this.regionWidth = `${pixelsPerSecond * this.regionDuration}px`;
+    }
   }
 
   get adjustedPeaks() {
