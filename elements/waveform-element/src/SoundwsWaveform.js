@@ -38,7 +38,7 @@ export class SoundwsWaveform extends LitElement {
         position: absolute;
         background-color: var(
           --soundws-waveform-region-mask-background-color,
-          rgba(0, 0, 0, 0.5)
+          rgba(0, 0, 0, 0.8)
         );
         height: 100%;
         width: 100%;
@@ -49,7 +49,7 @@ export class SoundwsWaveform extends LitElement {
         position: absolute;
         background-color: var(
           --soundws-waveform-region-highlight-background-color,
-          rgba(255, 255, 255, 0.3)
+          rgba(255, 255, 255, 0.1)
         );
         height: 100%;
         z-index: 1000;
@@ -57,7 +57,7 @@ export class SoundwsWaveform extends LitElement {
         border-style: solid;
         border-color: var(
           --soundws-waveform-region-highlight-border-color,
-          white
+          rgba(255, 255, 255, 0.5)
         );
       }
     `;
@@ -173,10 +173,17 @@ export class SoundwsWaveform extends LitElement {
     return html` <div class="container"></div>
       ${this.regionOffset && this.regionDuration
         ? html`<div class="region">
-            <div class="region-mask"></div>
+            <div
+              class="region-mask"
+              style="clip-path: polygon(0% 0%, 0% 100%, ${this
+                .regionLeft} 100%, ${this.regionLeft} 0%, calc(${this
+                .regionLeft} + ${this.regionWidth}) 0%, calc(${this
+                .regionLeft} + ${this
+                .regionWidth}) 100%, 25% 100%, 25% 100%, 100% 100%, 100% 0%)"
+            ></div>
             <div
               class="region-highlight"
-              style="left: ${this.regionLeft}; width: ${this.regionWidth};"
+              style="left: ${this.regionLeft}; width: ${this.regionWidth}; "
             ></div>
           </div>`
         : ''}`;
@@ -311,8 +318,8 @@ export class SoundwsWaveform extends LitElement {
     // update the region left and width
     if (this.peaks?.duration) {
       const pixelsPerSecond = this.offsetWidth / this.peaks.duration;
-      this.regionLeft = `${pixelsPerSecond * this.regionOffset}px`;
-      this.regionWidth = `${pixelsPerSecond * this.regionDuration}px`;
+      this.regionLeft = `${Math.round(pixelsPerSecond * this.regionOffset)}px`;
+      this.regionWidth = `${Math.round(pixelsPerSecond * this.regionDuration)}px`;
     }
   }
 
