@@ -204,6 +204,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     this.addEventListener('stem:unsolo', this.#onUnSolo);
     this.addEventListener('waveform:draw', this.#onWaveformDraw);
     if (!this.noHover) this.addEventListener('pointermove', this.#onHover);
+    this.addEventListener('waveform:region:change', this.#onRegionChange);
+    this.addEventListener('waveform:region:update', this.#onRegionUpdate);
 
     const handleSeek = e => {
       if (
@@ -631,6 +633,21 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         Object.keys(props).forEach(key => {
           el[key] = props[key];
         });
+    });
+  }
+
+  #onRegionChange(e) {
+    const { offset, duration } = e.detail;
+    this.#controller.offset = offset;
+    this.#controller.playDuration = duration;
+  }
+
+  #onRegionUpdate(e) {
+    const { offset, duration } = e.detail;
+
+    this.#updateChildren({
+      regionOffset: offset,
+      regionDuration: duration,
     });
   }
 }

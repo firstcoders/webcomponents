@@ -43,7 +43,7 @@ export class SoundwsWaveform extends LitElement {
         border-style: solid;
         border-color: var(
           --soundws-waveform-region-highlight-border-color,
-          rgba(255, 255, 255, 0.5)
+          rgba(255, 255, 255, 0.75)
         );
         box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.7);
       }
@@ -82,15 +82,19 @@ export class SoundwsWaveform extends LitElement {
     this.pixelRatio = 2;
     this.padding = 0.1;
 
-    this.addEventListener('click', e => {
-      this.dispatchEvent(
-        new CustomEvent('waveform:seek', {
-          bubbles: true,
-          composed: true,
-          detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
-        }),
-      );
-    });
+    this.addEventListener('mousedown', this.onMouseDown);
+    this.addEventListener('mousemove', this.onMouseMove);
+    this.addEventListener('mouseup', this.onMouseUp);
+
+    // this.addEventListener('click', e => {
+    //   this.dispatchEvent(
+    //     new CustomEvent('waveform:seek', {
+    //       bubbles: true,
+    //       composed: true,
+    //       detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
+    //     }),
+    //   );
+    // });
   }
 
   destroy() {
@@ -294,7 +298,7 @@ export class SoundwsWaveform extends LitElement {
   drawRegion() {
     // update the region left and width
     if (this.peaks?.duration) {
-      const pixelsPerSecond = this.offsetWidth / this.peaks.duration;
+      const { pixelsPerSecond } = this;
       this.regionLeft = `${Math.round(pixelsPerSecond * this.regionOffset)}px`;
       this.regionWidth = `${Math.round(pixelsPerSecond * this.regionDuration)}px`;
     }
@@ -311,5 +315,64 @@ export class SoundwsWaveform extends LitElement {
     }
 
     return undefined;
+  }
+
+  get pixelsPerSecond() {
+    return this.peaks.duration
+      ? this.offsetWidth / this.peaks.duration
+      : undefined;
+  }
+
+  onMouseDown(e) {
+    this.mouseDownX = e.offsetX;
+    console.log(this.mouseDownX, this.offsetLeft, this.getBoundingClientRect());
+  }
+
+  onMouseMove(e) {
+    if (this.mouseDownX) {
+      const distance = Math.abs(e.offsetX - this.mouseDownX);
+      this.mouseMoveWidth = distance > 10 ? distance : undefined;
+
+      if (this.mouseMoveWidth) {
+        this.#dispatchRegionEvent(e, 'waveform:region:update');
+      }
+    }
+  }
+
+  onMouseUp(e) {
+    if (!this.mouseMoveWidth) {
+      // if not selecting a region (but only clicking)... emit the usual click event
+      this.dispatchEvent(
+        new CustomEvent('waveform:seek', {
+          bubbles: true,
+          composed: true,
+          detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
+        }),
+      );
+    } else {
+      // if we're dragging, dispatch and event
+      this.#dispatchRegionEvent(e, 'waveform:region:change');
+    }
+
+    // reset
+    this.mouseMoveWidth = undefined;
+    this.mouseDownX = undefined;
+  }
+
+  #dispatchRegionEvent(e, eventname) {
+    const coord1 = this.mouseDownX;
+    const coord2 = e.offsetX;
+    const left = coord1 < coord2 ? coord1 : coord2;
+    const width = this.mouseMoveWidth;
+    const offset = left / this.pixelsPerSecond;
+    const duration = width / this.pixelsPerSecond;
+
+    this.dispatchEvent(
+      new CustomEvent(eventname, {
+        bubbles: true,
+        composed: true,
+        detail: { left, width, offset, duration },
+      }),
+    );
   }
 }
