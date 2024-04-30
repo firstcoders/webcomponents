@@ -112,6 +112,12 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           max-height: var(--stemplayer-js-max-height, auto);
           overflow: auto;
         }
+
+        soundws-region {
+          position: absolute;
+          height: 100%;
+          z-index: 9999;
+        }
       `,
     ];
   }
@@ -155,6 +161,10 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
        * Controls the player by keyboard events (e.g. space = start/pause)
        */
       noKeyboardEvents: { type: Boolean, attribute: 'no-keyboard-events' },
+
+      regionLeft: { state: true },
+      regionWidth: { state: true },
+      audioDuration: { state: true },
     };
   }
 
@@ -189,7 +199,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     const controller = new Controller({
       ac: this.audioContext,
       acOpts: { latencyHint: 'playback', sampleRate: 44100 },
-      duration: this.duration,
+      // duration: this.duration,
       loop: this.loop,
     });
 
@@ -204,8 +214,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     this.addEventListener('stem:unsolo', this.#onUnSolo);
     this.addEventListener('waveform:draw', this.#onWaveformDraw);
     if (!this.noHover) this.addEventListener('pointermove', this.#onHover);
-    this.addEventListener('waveform:region:change', this.#onRegionChange);
-    this.addEventListener('waveform:region:update', this.#onRegionUpdate);
 
     const handleSeek = e => {
       if (
@@ -287,18 +295,24 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       this.#updateChildren({
         duration,
       });
+
+      this.audioDuration = duration;
     });
 
     controller.on('offset', () => {
       this.#updateChildren({
         regionOffset: controller.offset,
       });
+
+      this.offset = controller.offset;
     });
 
     controller.on('playDuration', () => {
       this.#updateChildren({
         regionDuration: controller.playDuration,
       });
+
+      this.duration = controller.playDuration;
     });
 
     controller.on('start', () => {
@@ -393,6 +407,15 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
   render() {
     return html`<div class="relative overflowHidden">
+      ${this.displayMode === 'lg' && this.regionLeft && this.regionWidth
+        ? html`<soundws-region
+            .totalDuration=${this.audioDuration}
+            @region:update=${this.#onRegionUpdate}
+            @region:change=${this.#onRegionChange}
+            style="left: ${this.regionLeft}; width: ${this.regionWidth}"
+          ></soundws-region>`
+        : ''}
+
       <slot name="header" @slotchange=${this.#onSlotChange}></slot>
       <div class="stemsWrapper">
         <slot class="default" @slotchange=${this.#onSlotChange}></slot>
@@ -577,6 +600,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     if (e.target instanceof StemComponent) {
       this.#debouncedMergePeaks();
     }
+
+    console.log(e.detail.offsetLeft, e.detail.offsetWidth);
+
+    this.regionLeft = `${e.detail.offsetLeft}px`;
+    this.regionWidth = `${e.detail.offsetWidth}px`;
   }
 
   /**
@@ -644,6 +672,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
   #onRegionUpdate(e) {
     const { offset, duration } = e.detail;
+
+    console.log(offset, duration);
 
     this.#updateChildren({
       regionOffset: offset,

@@ -293,10 +293,16 @@ class Controller extends Observer {
     this.notifyUpdated('playDuration', this.playDuration);
   }
 
+  /**
+   * Return the playback duration
+   */
   get playDuration() {
     return this.durationOverride || this.audioDuration;
   }
 
+  /**
+   * Alias for audioDuration (as in, total duration - not playback duration)
+   */
   get duration() {
     return this.audioDuration;
   }
