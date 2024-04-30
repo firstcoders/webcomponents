@@ -27,34 +27,12 @@ export class SoundwsWaveform extends LitElement {
         min-height: var(--soundws-waveform-min-height, 25px);
         overflow: hidden;
       }
-
-      .region {
-        position: relative;
-        height: 100%;
-        width: 100%;
-        top: -100%;
-        background-color: var(
-          --soundws-waveform-region-highlight-background-color,
-          rgba(255, 255, 255, 0.1)
-        );
-        height: 100%;
-        z-index: 1000;
-        border-width: 0 1px 0 1px;
-        border-style: solid;
-        border-color: var(
-          --soundws-waveform-region-highlight-border-color,
-          rgba(255, 255, 255, 0.75)
-        );
-        box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.7);
-      }
     `;
   }
 
   static properties = {
     src: { type: String },
     duration: { type: Number },
-    regionOffset: { type: Number },
-    regionDuration: { type: Number },
     progress: { type: Number },
     waveColor: { type: String },
     progressColor: { type: String },
@@ -68,9 +46,6 @@ export class SoundwsWaveform extends LitElement {
      * Padding reduces the maximum waveform height to create a padding effect
      */
     padding: { type: Number },
-
-    regionLeft: { state: true },
-    regionWidth: { state: true },
   };
 
   constructor() {
@@ -109,7 +84,6 @@ export class SoundwsWaveform extends LitElement {
         this.shadowRoot.firstElementChild,
         () => {
           this.drawPeaks();
-          this.drawRegion();
         },
       );
     }, 0);
@@ -130,10 +104,6 @@ export class SoundwsWaveform extends LitElement {
       }
       if (propName === 'scaleY' || propName === 'peaks') {
         this.drawPeaks();
-        this.drawRegion();
-      }
-      if (propName === 'regionOffset' || propName === 'regionDuration') {
-        this.drawRegion();
       }
       if (
         [
@@ -161,13 +131,7 @@ export class SoundwsWaveform extends LitElement {
   }
 
   render() {
-    return html` <div class="container"></div>
-      ${this.regionOffset && this.regionDuration
-        ? html`<div
-            class="region"
-            style="left: ${this.regionLeft}; width: ${this.regionWidth};"
-          ></div>`
-        : ''}`;
+    return html`<div class="container"></div>`;
   }
 
   /**
@@ -296,15 +260,6 @@ export class SoundwsWaveform extends LitElement {
     });
   }
 
-  drawRegion() {
-    // update the region left and width
-    if (this.peaks?.duration) {
-      const { pixelsPerSecond } = this;
-      this.regionLeft = `${Math.round(pixelsPerSecond * this.regionOffset)}px`;
-      this.regionWidth = `${Math.round(pixelsPerSecond * this.regionDuration)}px`;
-    }
-  }
-
   get adjustedPeaks() {
     const { scaleY, peaks } = this;
 
@@ -316,64 +271,5 @@ export class SoundwsWaveform extends LitElement {
     }
 
     return undefined;
-  }
-
-  get pixelsPerSecond() {
-    return this.peaks.duration
-      ? this.offsetWidth / this.peaks.duration
-      : undefined;
-  }
-
-  onMouseDown(e) {
-    this.mouseDownX = e.offsetX;
-    console.log(this.mouseDownX, this.offsetLeft, this.getBoundingClientRect());
-  }
-
-  onMouseMove(e) {
-    if (this.mouseDownX) {
-      const distance = Math.abs(e.offsetX - this.mouseDownX);
-      this.mouseMoveWidth = distance > 10 ? distance : undefined;
-
-      if (this.mouseMoveWidth) {
-        this.#dispatchRegionEvent(e, 'waveform:region:update');
-      }
-    }
-  }
-
-  onMouseUp(e) {
-    if (!this.mouseMoveWidth) {
-      // if not selecting a region (but only clicking)... emit the usual click event
-      this.dispatchEvent(
-        new CustomEvent('waveform:seek', {
-          bubbles: true,
-          composed: true,
-          detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
-        }),
-      );
-    } else {
-      // if we're dragging, dispatch and event
-      this.#dispatchRegionEvent(e, 'waveform:region:change');
-    }
-
-    // reset
-    this.mouseMoveWidth = undefined;
-    this.mouseDownX = undefined;
-  }
-
-  #dispatchRegionEvent(e, eventname) {
-    const coord1 = this.mouseDownX;
-    const coord2 = e.offsetX;
-    const left = coord1 < coord2 ? coord1 : coord2;
-    const width = this.mouseMoveWidth;
-    const offset = left / this.pixelsPerSecond;
-    const duration = width / this.pixelsPerSecond;
-
-    this.dispatchEvent(
-      new CustomEvent(eventname, {
-        bubbles: true,
-        composed: true,
-        detail: { left, width, offset, duration },
-      }),
-    );
   }
 }

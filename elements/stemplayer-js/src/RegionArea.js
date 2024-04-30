@@ -49,10 +49,10 @@ export class RegionArea extends LitElement {
 
   static properties = {
     totalDuration: { type: Number },
-    // playDuration: { type: Number },
-    // offset: { type: Number },
-    // selectionLeft: { state: true },
-    // selectionWidth: { state: true },
+    offset: { type: Number },
+    duration: { type: Number },
+    selectionLeft: { state: true },
+    selectionWidth: { state: true },
   };
 
   constructor() {
@@ -73,10 +73,8 @@ export class RegionArea extends LitElement {
       : ''}`;
   }
 
-  updated(changedProperties) {
-    changedProperties.forEach((oldValue, propName) => {
-      this.drawRegion();
-    });
+  updated() {
+    this.drawRegion();
   }
 
   onMouseDown(e) {
@@ -95,7 +93,7 @@ export class RegionArea extends LitElement {
     }
   }
 
-  onMouseUp(e) {
+  onMouseUp() {
     if (this.mouseMoveWidth) {
       // if we're dragging, dispatch and event
       this.#dispatchEvent('region:change');
@@ -106,7 +104,7 @@ export class RegionArea extends LitElement {
     this.mouseDownX = undefined;
   }
 
-  onMouseOut(e) {
+  onMouseOut() {
     this.onMouseUp();
   }
 
@@ -129,24 +127,16 @@ export class RegionArea extends LitElement {
   }
 
   get pixelsPerSecond() {
-    console.log('offsetWidth', this.offsetWidth, this.totalDuration);
     return this.totalDuration
       ? this.offsetWidth / this.totalDuration
       : undefined;
   }
 
   drawRegion() {
-    if (this.offset && this.playDuration) {
+    if (this.offset && this.duration) {
       const { pixelsPerSecond } = this;
       this.selectionLeft = `${Math.round(pixelsPerSecond * this.offset)}px`;
-      this.selectionWidth = `${Math.round(pixelsPerSecond * this.playDuration)}px`;
-
-      console.log(
-        'playDuration',
-        pixelsPerSecond,
-        this.playDuration,
-        this.selectionWidth,
-      );
+      this.selectionWidth = `${Math.round(pixelsPerSecond * this.duration)}px`;
     }
   }
 }

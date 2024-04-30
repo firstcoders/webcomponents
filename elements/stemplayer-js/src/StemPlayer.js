@@ -165,6 +165,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       regionLeft: { state: true },
       regionWidth: { state: true },
       audioDuration: { state: true },
+      regionOffset: { state: true },
+      regionDuration: { state: true },
     };
   }
 
@@ -300,19 +302,13 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     });
 
     controller.on('offset', () => {
-      this.#updateChildren({
-        regionOffset: controller.offset,
-      });
-
+      this.regionOffset = controller.offset;
       this.offset = controller.offset;
     });
 
     controller.on('playDuration', () => {
-      this.#updateChildren({
-        regionDuration: controller.playDuration,
-      });
-
-      this.duration = controller.playDuration;
+      this.regionDuration = controller.playDuration;
+      // this.duration = controller.playDuration;
     });
 
     controller.on('start', () => {
@@ -410,6 +406,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       ${this.displayMode === 'lg' && this.regionLeft && this.regionWidth
         ? html`<soundws-region
             .totalDuration=${this.audioDuration}
+            .offset=${this.regionOffset}
+            .duration=${this.regionDuration}
             @region:update=${this.#onRegionUpdate}
             @region:change=${this.#onRegionChange}
             style="left: ${this.regionLeft}; width: ${this.regionWidth}"
@@ -601,10 +599,10 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       this.#debouncedMergePeaks();
     }
 
-    console.log(e.detail.offsetLeft, e.detail.offsetWidth);
-
-    this.regionLeft = `${e.detail.offsetLeft}px`;
-    this.regionWidth = `${e.detail.offsetWidth}px`;
+    // @todo Not sure why but offsetLeft leaves 1 pixel of the underlying waveform visible
+    const padding = 1;
+    this.regionLeft = `${e.detail.offsetLeft - padding}px`;
+    this.regionWidth = `${e.detail.offsetWidth + padding}px`;
   }
 
   /**
@@ -672,12 +670,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
   #onRegionUpdate(e) {
     const { offset, duration } = e.detail;
-
-    console.log(offset, duration);
-
-    this.#updateChildren({
-      regionOffset: offset,
-      regionDuration: duration,
-    });
+    this.regionOffset = offset;
+    this.regionDuration = duration;
   }
 }
