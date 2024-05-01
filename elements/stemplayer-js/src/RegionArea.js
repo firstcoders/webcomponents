@@ -96,11 +96,12 @@ export class RegionArea extends LitElement {
 
     this.addEventListener('mousedown', this.onMouseDown);
     this.addEventListener('mousemove', this.onMouseMove);
+    this.addEventListener('click', this.#handleClick);
     document.addEventListener('mouseup', e => this.onMouseUp(e)); // mouse up _anywhere_ (not just in this element) will trigger the select-end behaviour
   }
 
   render() {
-    return html`${this.offset !== undefined && this.duration !== undefined
+    return html`${this.offset && this.duration
       ? html`<div
             class="toolbar absolute left w2"
             style="left: calc(${this.pixelsPerSecond * this.offset}px - 50px);"
@@ -138,6 +139,7 @@ export class RegionArea extends LitElement {
 
   onMouseDown(e) {
     this.mouseDownX = e.offsetX;
+    this.mouseDownTime = new Date();
   }
 
   onMouseMove(e) {
@@ -152,24 +154,10 @@ export class RegionArea extends LitElement {
     }
   }
 
-  onMouseUp(e) {
+  onMouseUp() {
     if (this.mouseMoveWidth) {
       // if we're dragging, dispatch and event
       this.#dispatchEvent('region:change');
-    } else {
-      // if we're not dragging, we must be seeking
-      // setTimeout(() => {
-      this.dispatchEvent(
-        new CustomEvent('region:seek', {
-          bubbles: true,
-          composed: true,
-          detail:
-            Math.round(
-              ((e.offsetX - this.offsetLeft) / this.clientWidth) * 100,
-            ) / 100,
-        }),
-      );
-      // }, 0);
     }
 
     // reset
@@ -193,6 +181,20 @@ export class RegionArea extends LitElement {
         detail: this.state,
       }),
     );
+  }
+
+  #handleClick(e) {
+    const clickTime = new Date() - this.mouseDownTime;
+    console.log('click', clickTime);
+    if (clickTime < 150) {
+      this.dispatchEvent(
+        new CustomEvent('region:seek', {
+          bubbles: true,
+          composed: true,
+          detail: Math.round((e.offsetX / this.clientWidth) * 100) / 100,
+        }),
+      );
+    }
   }
 
   get state() {

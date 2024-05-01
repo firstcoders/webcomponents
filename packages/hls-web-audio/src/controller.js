@@ -156,7 +156,7 @@ class Controller extends Observer {
     this.desiredState = 'resumed';
 
     if (typeof this.duration !== 'number') throw new Error('Cannot play before loading content');
-    // if (this.isBuffering) throw new Error('The player is buffering');
+    if (this.isBuffering) throw new Error('The player is buffering');
     // seek to 0 when starting playback for the first time
     if (typeof this.adjustedStart !== 'number') this.fixAdjustedStart(this.offset);
 
