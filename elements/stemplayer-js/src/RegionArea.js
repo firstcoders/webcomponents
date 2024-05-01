@@ -97,8 +97,6 @@ export class RegionArea extends LitElement {
     this.addEventListener('mousedown', this.onMouseDown);
     this.addEventListener('mousemove', this.onMouseMove);
     document.addEventListener('mouseup', e => this.onMouseUp(e)); // mouse up _anywhere_ (not just in this element) will trigger the select-end behaviour
-    this.addEventListener('mouseout', this.onMouseOut);
-    this.addEventListener('click', this.#handleSeek);
   }
 
   render() {
@@ -146,7 +144,7 @@ export class RegionArea extends LitElement {
     if (this.mouseDownX && e.offsetX > 0 && e.offsetX < this.offsetWidth) {
       this.lastOffsetX = e.offsetX;
       const distance = Math.abs(e.offsetX - this.mouseDownX);
-      this.mouseMoveWidth = distance; // > 10 ? distance : undefined;
+      this.mouseMoveWidth = distance > 5 ? distance : undefined;
 
       if (this.mouseMoveWidth) {
         this.#dispatchEvent('region:update');
@@ -154,20 +152,29 @@ export class RegionArea extends LitElement {
     }
   }
 
-  onMouseUp() {
+  onMouseUp(e) {
     if (this.mouseMoveWidth) {
       // if we're dragging, dispatch and event
       this.#dispatchEvent('region:change');
+    } else {
+      // if we're not dragging, we must be seeking
+      // setTimeout(() => {
+      this.dispatchEvent(
+        new CustomEvent('region:seek', {
+          bubbles: true,
+          composed: true,
+          detail:
+            Math.round(
+              ((e.offsetX - this.offsetLeft) / this.clientWidth) * 100,
+            ) / 100,
+        }),
+      );
+      // }, 0);
     }
 
     // reset
     this.mouseMoveWidth = undefined;
     this.mouseDownX = undefined;
-  }
-
-  onMouseOut(e) {
-    // console.log('mouseout');
-    // this.onMouseUp(e);
   }
 
   onDeselectClick(e) {
@@ -204,15 +211,5 @@ export class RegionArea extends LitElement {
     return this.totalDuration
       ? this.offsetWidth / this.totalDuration
       : undefined;
-  }
-
-  #handleSeek(e) {
-    this.dispatchEvent(
-      new CustomEvent('region:seek', {
-        bubbles: true,
-        composed: true,
-        detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
-      }),
-    );
   }
 }

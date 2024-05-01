@@ -461,6 +461,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     return {
       state,
       currentTime,
+      offset: this.#controller.offset,
+      duration: this.#controller.playDuration,
       stems: this.stemComponents.map(c => ({
         id: c.id,
         src: c.src,
