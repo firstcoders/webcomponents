@@ -78,6 +78,7 @@ export class RegionArea extends LitElement {
 
         .toolbar {
           height: 100%;
+          z-index: 99999;
         }
       `,
       spacingStyles,
@@ -88,8 +89,6 @@ export class RegionArea extends LitElement {
     totalDuration: { type: Number },
     offset: { type: Number },
     duration: { type: Number },
-    // selectionLeft: { state: true },
-    // selectionWidth: { state: true },
   };
 
   constructor() {
@@ -103,13 +102,20 @@ export class RegionArea extends LitElement {
   }
 
   render() {
-    return html`${this.offset && this.duration
-      ? html`<div class="toolbar absolute left w2 bgPlayer">
+    return html`${this.offset !== undefined && this.duration !== undefined
+      ? html`<div
+            class="toolbar absolute left w2"
+            style="left: calc(${this.pixelsPerSecond * this.offset}px - 50px);"
+          >
             <div class="w2 hRow textCenter noSelect textXs">
               ${formatSeconds(this.offset)}
             </div>
           </div>
-          <div class="toolbar absolute right w2 bgPlayer">
+          <div
+            class="toolbar absolute right w2"
+            style="left: ${this.pixelsPerSecond *
+            (this.offset + this.duration)}px;"
+          >
             <div class="w2 hRow textCenter noSelect textXs">
               ${formatSeconds(this.offset + this.duration)}
             </div>
@@ -137,11 +143,11 @@ export class RegionArea extends LitElement {
   }
 
   onMouseMove(e) {
-    if (this.mouseDownX) {
+    if (this.mouseDownX && e.offsetX > 0 && e.offsetX < this.offsetWidth) {
       this.lastOffsetX = e.offsetX;
       const distance = Math.abs(e.offsetX - this.mouseDownX);
+      this.mouseMoveWidth = distance; // > 10 ? distance : undefined;
 
-      this.mouseMoveWidth = distance > 10 ? distance : undefined;
       if (this.mouseMoveWidth) {
         this.#dispatchEvent('region:update');
       }
@@ -165,7 +171,6 @@ export class RegionArea extends LitElement {
   }
 
   onDeselectClick(e) {
-    console.log('deselect');
     e.stopPropagation();
     e.preventDefault();
     this.dispatchEvent(
@@ -176,6 +181,14 @@ export class RegionArea extends LitElement {
   }
 
   #dispatchEvent(eventname) {
+    this.dispatchEvent(
+      new CustomEvent(eventname, {
+        detail: this.state,
+      }),
+    );
+  }
+
+  get state() {
     const { pixelsPerSecond } = this;
     const coord1 = this.mouseDownX;
     const coord2 = this.lastOffsetX;
@@ -184,11 +197,7 @@ export class RegionArea extends LitElement {
     const offset = Math.floor((left / pixelsPerSecond) * 100) / 100;
     const duration = Math.floor((width / pixelsPerSecond) * 100) / 100;
 
-    this.dispatchEvent(
-      new CustomEvent(eventname, {
-        detail: { left, width, offset, duration },
-      }),
-    );
+    return { left, width, offset, duration };
   }
 
   get pixelsPerSecond() {
