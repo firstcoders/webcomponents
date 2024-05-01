@@ -29,6 +29,10 @@ export default css`
     width: calc(var(--stemplayer-js-grid-base, 1.5rem) * 6);
   }
 
+  .w7 {
+    width: calc(var(--stemplayer-js-grid-base, 1.5rem) * 7);
+  }
+
   .w9 {
     width: calc(var(--stemplayer-js-grid-base, 1.5rem) * 9);
   }

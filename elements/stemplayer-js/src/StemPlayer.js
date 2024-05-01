@@ -209,6 +209,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
     this.addEventListener('controls:play', this.#onPlay);
     this.addEventListener('controls:pause', this.#onPause);
+    this.addEventListener('controls:loop', this.#onToggleLoop);
     // this.addEventListener('peaks', this.onPeaks);
     this.addEventListener('stem:load:start', this.#onStemLoadingStart);
     this.addEventListener('stem:load:end', this.#onStemLoadingEnd);
@@ -218,15 +219,12 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     if (!this.noHover) this.addEventListener('pointermove', this.#onHover);
 
     const handleSeek = e => {
-      if (
-        e.target instanceof StemComponent ||
-        e.target instanceof ControlComponent
-      ) {
-        controller.pct = e.detail;
-      }
+      controller.pct = e.detail;
     };
 
-    this.addEventListener('waveform:seek', e => handleSeek(e));
+    // No longer listen to waveform seek events due to the overlay of the region area
+    // this.addEventListener('waveform:seek', e => handleSeek(e));
+    this.addEventListener('region:seek', e => handleSeek(e));
     this.addEventListener('controls:seek', e => handleSeek(e));
 
     this.addEventListener('controls:seeking', () => {
@@ -376,6 +374,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     changedProperties.forEach((oldValue, propName) => {
       if (['loop'].indexOf(propName) !== -1) {
         this.#controller.loop = this.loop;
+
+        // notify the controls component of the change
+        this.#updateChildren({
+          loop: this.loop,
+        });
       }
       if (['offset'].indexOf(propName) !== -1) {
         this.#controller.offset = this.offset;
@@ -442,6 +445,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
    */
   #onPause() {
     this.#controller.pause();
+  }
+
+  #onToggleLoop() {
+    this.#controller.loop = !this.#controller.loop;
+    this.loop = !this.loop;
   }
 
   /**

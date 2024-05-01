@@ -24,4 +24,12 @@ export default css`
   .focusBgBrand:focus {
     background-color: var(--stemplayer-js-brand-color, rgb(1, 164, 179));
   }
+
+  .bgOverlay {
+    background-color: var(--stemplayer-js-overlay, rgba(0, 0, 0, 0.5));
+  }
+
+  .bgPlayer {
+    background-color: var(--stemplayer-js-background-color, black);
+  }
 `;
