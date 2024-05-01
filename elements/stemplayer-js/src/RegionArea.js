@@ -19,6 +19,7 @@ import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
 import gridStyles from './styles/grid.js';
 import rowStyles from './styles/row.js';
+import backgroundStyles from './styles/backgrounds.js';
 import formatSeconds from './lib/format-seconds.js';
 
 export class RegionArea extends LitElement {
@@ -27,9 +28,13 @@ export class RegionArea extends LitElement {
       gridStyles,
       rowStyles,
       typographyStyles,
+      backgroundStyles,
       css`
         :host {
           display: block;
+        }
+
+        .wrapper {
           height: 100%;
           width: 100%;
           overflow: hidden;
@@ -92,26 +97,20 @@ export class RegionArea extends LitElement {
 
     this.addEventListener('mousedown', this.onMouseDown);
     this.addEventListener('mousemove', this.onMouseMove);
-    this.addEventListener('mouseup', this.onMouseUp);
+    document.addEventListener('mouseup', e => this.onMouseUp(e)); // mouse up _anywhere_ (not just in this element) will trigger the select-end behaviour
     this.addEventListener('mouseout', this.onMouseOut);
     this.addEventListener('click', this.#handleSeek);
   }
 
   render() {
     return html`${this.offset && this.duration
-      ? html`<div
-          class="selection"
-          style="left: ${Math.round(
-            this.pixelsPerSecond * this.offset,
-          )}px; width: ${Math.round(this.pixelsPerSecond * this.duration)}px;"
-        >
-          <div class="toolbar absolute left w2">
-            <div class="w2 hRow textCenter noSelect">
+      ? html`<div class="toolbar absolute left w2 bgPlayer">
+            <div class="w2 hRow textCenter noSelect textXs">
               ${formatSeconds(this.offset)}
             </div>
           </div>
-          <div class="toolbar absolute right w2">
-            <div class="w2 hRow textCenter noSelect">
+          <div class="toolbar absolute right w2 bgPlayer">
+            <div class="w2 hRow textCenter noSelect textXs">
               ${formatSeconds(this.offset + this.duration)}
             </div>
             <soundws-player-button
@@ -120,7 +119,16 @@ export class RegionArea extends LitElement {
               type="deselect"
             ></soundws-player-button>
           </div>
-        </div>`
+          <div class="wrapper">
+            <div
+              class="selection"
+              style="left: ${Math.round(
+                this.pixelsPerSecond * this.offset,
+              )}px; width: ${Math.round(
+                this.pixelsPerSecond * this.duration,
+              )}px;"
+            ></div>
+          </div>`
       : ''}`;
   }
 
@@ -140,7 +148,7 @@ export class RegionArea extends LitElement {
     }
   }
 
-  onMouseUp(e) {
+  onMouseUp() {
     if (this.mouseMoveWidth) {
       // if we're dragging, dispatch and event
       this.#dispatchEvent('region:change');
@@ -151,9 +159,9 @@ export class RegionArea extends LitElement {
     this.mouseDownX = undefined;
   }
 
-  onMouseOut() {
-    console.log('mouseout');
-    this.onMouseUp();
+  onMouseOut(e) {
+    // console.log('mouseout');
+    // this.onMouseUp(e);
   }
 
   onDeselectClick(e) {
