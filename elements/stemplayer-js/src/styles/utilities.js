@@ -21,7 +21,19 @@ export default css`
     position: relative;
   }
 
+  .absolute {
+    position: absolute;
+  }
+
   .overflowHidden {
     overflow: hidden;
+  }
+
+  .h100 {
+    height: 100%;
+  }
+
+  .ztop {
+    z-index: 99999;
   }
 `;

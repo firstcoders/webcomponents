@@ -20,68 +20,46 @@ import typographyStyles from './styles/typography.js';
 import gridStyles from './styles/grid.js';
 import rowStyles from './styles/row.js';
 import backgroundStyles from './styles/backgrounds.js';
+import utilitiesStyles from './styles/utilities.js';
 import formatSeconds from './lib/format-seconds.js';
 
+/**
+ * An area that represents the timeline providing functionality to select regions
+ */
 export class RegionArea extends LitElement {
+  /**
+   * A mouse event offsetX coordinate
+   */
+  #mouseDownX;
+
+  /**
+   * A Date representing when the mouse was clicked
+   */
+  #mouseDownTime;
+
   static get styles() {
     return [
       gridStyles,
       rowStyles,
       typographyStyles,
       backgroundStyles,
+      spacingStyles,
+      utilitiesStyles,
       css`
         :host {
           display: block;
         }
 
-        .wrapper {
-          height: 100%;
-          width: 100%;
-          overflow: hidden;
-        }
-
         .selection {
-          position: absolute;
-          height: 100%;
-          width: 100%;
-          background-color: var(
-            --stemplayer-js-region-highlight-background-color,
-            rgba(255, 255, 255, 0.1)
-          );
-          height: 100%;
-          z-index: 1000;
           border-width: 0 1px 0 1px;
-          border-style: solid;
+          border-style: dashed;
           border-color: var(
-            --stemplayer-js-region-highlight-border-color,
+            --stemplayer-js-region-selection-border-color,
             rgba(255, 255, 255, 0.75)
           );
           box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.85);
-          position: relative;
-        }
-
-        .absolute {
-          position: absolute;
-        }
-
-        .bottom {
-          bottom: 0;
-        }
-
-        .left {
-          left: calc(var(--stemplayer-js-grid-base, 1.5rem) * -2);
-        }
-
-        .right {
-          right: calc(var(--stemplayer-js-grid-base, 1.5rem) * -2);
-        }
-
-        .toolbar {
-          height: 100%;
-          z-index: 99999;
         }
       `,
-      spacingStyles,
     ];
   }
 
@@ -93,79 +71,100 @@ export class RegionArea extends LitElement {
 
   constructor() {
     super();
-
-    this.addEventListener('mousedown', this.onMouseDown);
-    this.addEventListener('mousemove', this.onMouseMove);
+    this.addEventListener('mousedown', this.#onMouseDown);
+    this.addEventListener('mousemove', this.#onMouseMove);
     this.addEventListener('click', this.#handleClick);
-    document.addEventListener('mouseup', e => this.onMouseUp(e)); // mouse up _anywhere_ (not just in this element) will trigger the select-end behaviour
+    document.addEventListener('mouseup', e => this.#onMouseUp(e)); // mouse up _anywhere_ (not just in this element) will also trigger the select-end behaviour
   }
 
   render() {
     return html`${this.offset && this.duration
       ? html`<div
-            class="toolbar absolute left w2"
+            class="h100 absolute left w2 ztop"
             style="left: calc(${this.pixelsPerSecond * this.offset}px - 50px);"
           >
             <div class="w2 hRow textCenter noSelect textXs">
               ${formatSeconds(this.offset)}
             </div>
           </div>
-          <div
-            class="toolbar absolute right w2"
-            style="left: ${this.pixelsPerSecond *
-            (this.offset + this.duration)}px;"
-          >
-            <div class="w2 hRow textCenter noSelect textXs">
-              ${formatSeconds(this.offset + this.duration)}
-            </div>
-            <soundws-player-button
-              @click=${this.onDeselectClick}
-              class="hRow w2"
-              type="deselect"
-            ></soundws-player-button>
-          </div>
-          <div class="wrapper">
+          <div class="h100 overflowHidden">
             <div
-              class="selection"
+              class="selection h100 relative"
               style="left: ${Math.round(
                 this.pixelsPerSecond * this.offset,
               )}px; width: ${Math.round(
                 this.pixelsPerSecond * this.duration,
               )}px;"
             ></div>
+          </div>
+          <div
+            class="h100 absolute right w2 ztop"
+            style="left: ${this.pixelsPerSecond *
+            (this.offset + this.duration)}px; top: 0;"
+          >
+            <div class="w2 hRow textCenter noSelect textXs">
+              ${formatSeconds(this.offset + this.duration)}
+            </div>
+            <soundws-player-button
+              @click=${this.#onDeselectClick}
+              class="hRow w2"
+              type="deselect"
+            ></soundws-player-button>
           </div>`
       : ''}`;
   }
 
-  onMouseDown(e) {
-    this.mouseDownX = e.offsetX;
-    this.mouseDownTime = new Date();
+  #onMouseDown(e) {
+    this.#mouseDownX = e.offsetX;
+
+    if (e.offsetX < 0) {
+      this.#mouseDownX = 0;
+    }
+
+    if (e.offsetX > this.offsetWidth) {
+      this.#mouseDownX = this.offsetWidth;
+    }
+
+    this.#mouseDownTime = new Date();
   }
 
-  onMouseMove(e) {
-    if (this.mouseDownX && e.offsetX > 0 && e.offsetX < this.offsetWidth) {
+  #onMouseMove(e) {
+    if (
+      this.#mouseDownX !== undefined &&
+      e.offsetX > 0 &&
+      e.offsetX < this.offsetWidth
+    ) {
       this.lastOffsetX = e.offsetX;
-      const distance = Math.abs(e.offsetX - this.mouseDownX);
+      const distance = Math.abs(e.offsetX - this.#mouseDownX);
       this.mouseMoveWidth = distance > 5 ? distance : undefined;
 
       if (this.mouseMoveWidth) {
-        this.#dispatchEvent('region:update');
+        this.dispatchEvent(
+          new CustomEvent('region:update', {
+            detail: this.state,
+          }),
+        );
       }
     }
   }
 
-  onMouseUp() {
+  #onMouseUp() {
+    // if we're dragging, dispatch and event
     if (this.mouseMoveWidth) {
-      // if we're dragging, dispatch and event
-      this.#dispatchEvent('region:change');
+      this.dispatchEvent(
+        new CustomEvent('region:change', {
+          detail: this.state,
+        }),
+      );
     }
 
     // reset
     this.mouseMoveWidth = undefined;
-    this.mouseDownX = undefined;
+    this.#mouseDownX = undefined;
+    this.mouseDownTime = undefined;
   }
 
-  onDeselectClick(e) {
+  #onDeselectClick(e) {
     e.stopPropagation();
     e.preventDefault();
     this.dispatchEvent(
@@ -175,17 +174,8 @@ export class RegionArea extends LitElement {
     );
   }
 
-  #dispatchEvent(eventname) {
-    this.dispatchEvent(
-      new CustomEvent(eventname, {
-        detail: this.state,
-      }),
-    );
-  }
-
   #handleClick(e) {
-    const clickTime = new Date() - this.mouseDownTime;
-    console.log('click', clickTime);
+    const clickTime = new Date() - this.#mouseDownTime;
     if (clickTime < 150) {
       this.dispatchEvent(
         new CustomEvent('region:seek', {
@@ -197,9 +187,14 @@ export class RegionArea extends LitElement {
     }
   }
 
+  /**
+   * Gets the current selection state
+   *
+   * @returns {{left: Number, width: Number, offset: Number, duration: Number }}
+   */
   get state() {
     const { pixelsPerSecond } = this;
-    const coord1 = this.mouseDownX;
+    const coord1 = this.#mouseDownX;
     const coord2 = this.lastOffsetX;
     const left = coord1 < coord2 ? coord1 : coord2;
     const width = this.mouseMoveWidth;
@@ -209,6 +204,11 @@ export class RegionArea extends LitElement {
     return { left, width, offset, duration };
   }
 
+  /**
+   * Gets the pixels per second, calculated by assessing the element width and the duration it represents
+   *
+   * @returns {Number|undefined}
+   */
   get pixelsPerSecond() {
     return this.totalDuration
       ? this.offsetWidth / this.totalDuration
