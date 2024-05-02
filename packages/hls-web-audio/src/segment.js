@@ -15,6 +15,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 class Segment {
+  #cacheClearTimeout;
+
   /**
    * @param {Object} param - The params
    * @param {Object} param.src - The src url
@@ -82,18 +84,22 @@ class Segment {
 
   async connect({ destination, ac, start, offset, stop, loopEnd }) {
     if (this.sourceNode) throw new Error('Cannot connect a segment twice');
-    if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
-    const audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
+    if (this.#cacheClearTimeout) clearTimeout(this.#cacheClearTimeout);
+
+    if (!this.audioBuffer) {
+      if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
+      this.audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
+    }
 
     // update the expected duration (from m3u8 file) with the real duration from the decoded audio
-    this.duration = audioBuffer.duration;
+    this.duration = this.audioBuffer.duration;
 
     this.sourceNode = ac.createBufferSource();
 
     const { sourceNode } = this;
 
-    sourceNode.buffer = audioBuffer;
+    sourceNode.buffer = this.audioBuffer;
     sourceNode.connect(destination);
 
     // We no longer need the raw data, clear up memory
@@ -130,6 +136,13 @@ class Segment {
 
       // remove reference
       this.sourceNode = null;
+
+      // schedule the cleanup of the cache
+      // we dont do this immediately so that if the sement is re-scheduled soon after it can benefit
+      // from an already decoded audio buffer. However we do need to clean it eventually for memory management.
+      this.#cacheClearTimeout = setTimeout(() => {
+        this.audioBuffer = undefined;
+      }, 10000);
     }
   }
 
@@ -158,6 +171,10 @@ class Segment {
    */
   get end() {
     return this.start !== undefined ? this.start + this.duration : undefined;
+  }
+
+  get isLoaded() {
+    return !!this.audioBuffer;
   }
 }
 

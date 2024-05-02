@@ -262,7 +262,7 @@ class HLS {
       this.controller.notify('loading-start', this);
 
       // load the segment
-      await segment.load().promise;
+      if (!segment.isLoaded) await segment.load().promise;
 
       const start = timeframe.calculateRealStart(segment);
       const offset = timeframe.calculateOffset(segment);
