@@ -61,15 +61,15 @@ export class SoundwsWaveform extends LitElement {
     this.addEventListener('mousemove', this.onMouseMove);
     this.addEventListener('mouseup', this.onMouseUp);
 
-    // this.addEventListener('click', e => {
-    //   this.dispatchEvent(
-    //     new CustomEvent('waveform:seek', {
-    //       bubbles: true,
-    //       composed: true,
-    //       detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
-    //     }),
-    //   );
-    // });
+    this.addEventListener('click', e => {
+      this.dispatchEvent(
+        new CustomEvent('waveform:seek', {
+          bubbles: true,
+          composed: true,
+          detail: Math.round((e.offsetX / e.target.clientWidth) * 100) / 100,
+        }),
+      );
+    });
   }
 
   destroy() {

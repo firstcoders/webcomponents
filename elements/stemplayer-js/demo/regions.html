@@ -13,7 +13,7 @@
       import 'lit';
       import '../stemplayer.js';
     </script>
-    <stemplayer-js loop="loop" duration="25" offset="5">
+    <stemplayer-js regions loop="loop" duration="25" offset="5">
       <stemplayer-js-controls
         slot="header"
         label="Demo tr115ck"
@@ -57,8 +57,8 @@
 
     <script>
       const stemplayer = document.querySelector('stemplayer-js');
-      stemplayer.addEventListener('peaks', (peaks) => {
-        console.log(peaks)
+      stemplayer.addEventListener('region:change', (e) => {
+        console.log(e.detail)
       })
 
       // eslint-disable-next-line no-unused-vars

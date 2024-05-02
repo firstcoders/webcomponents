@@ -152,6 +152,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       noHover: { type: Boolean, attribute: 'no-hover' },
 
       /**
+       * Enable region selection
+       */
+      regions: { type: Boolean },
+
+      /**
        * Inject a pre instantiated AudioContext
        * @see https://developer.mozilla.org/en-US/docs/Web/API/AudioContext
        */
@@ -197,6 +202,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     this.noHover = false;
     this.noKeyboardEvents = false;
     this.#debouncedMergePeaks = debounce(this.#mergePeaks, 100);
+    this.regions = false;
 
     const controller = new Controller({
       ac: this.audioContext,
@@ -222,8 +228,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       controller.pct = e.detail;
     };
 
-    // No longer listen to waveform seek events due to the overlay of the region area
-    // this.addEventListener('waveform:seek', e => handleSeek(e));
+    this.addEventListener('waveform:seek', e => handleSeek(e));
     this.addEventListener('region:seek', e => handleSeek(e));
     this.addEventListener('controls:seek', e => handleSeek(e));
 
@@ -406,7 +411,10 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
   render() {
     return html`<div class="relative overflowHidden">
-      ${this.displayMode === 'lg' && this.regionLeft && this.regionWidth
+      ${this.displayMode === 'lg' &&
+      this.regions &&
+      this.regionLeft &&
+      this.regionWidth
         ? html`<soundws-region
             .totalDuration=${this.audioDuration}
             .offset=${this.regionOffset}
@@ -416,7 +424,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
             style="left: ${this.regionLeft}; width: ${this.regionWidth}"
           ></soundws-region>`
         : ''}
-
       <slot name="header" @slotchange=${this.#onSlotChange}></slot>
       <div class="stemsWrapper">
         <slot class="default" @slotchange=${this.#onSlotChange}></slot>

@@ -152,12 +152,14 @@ export class RegionArea extends ResponsiveLitElement {
     ) {
       this.lastOffsetX = e.offsetX;
       const distance = Math.abs(e.offsetX - this.#mouseDownX);
-      this.mouseMoveWidth = distance > 5 ? distance : undefined;
+      this.mouseMoveWidth = distance; // distance > 5 ? distance : undefined;
 
       if (this.mouseMoveWidth) {
         this.dispatchEvent(
           new CustomEvent('region:update', {
             detail: this.state,
+            bubbles: true,
+            composed: true,
           }),
         );
       }
@@ -170,6 +172,8 @@ export class RegionArea extends ResponsiveLitElement {
       this.dispatchEvent(
         new CustomEvent('region:change', {
           detail: this.state,
+          bubbles: true,
+          composed: true,
         }),
       );
     }
@@ -217,6 +221,6 @@ export class RegionArea extends ResponsiveLitElement {
     const offset = Math.floor((left / pixelsPerSecond) * 100) / 100;
     const duration = Math.floor((width / pixelsPerSecond) * 100) / 100;
 
-    return { left, width, offset, duration };
+    return { offset, duration };
   }
 }
