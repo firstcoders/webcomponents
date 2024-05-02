@@ -14,7 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-import { LitElement, css, html } from 'lit';
+import { css, html } from 'lit';
+import { ResponsiveLitElement } from './ResponsiveLitElement.js';
 import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
 import gridStyles from './styles/grid.js';
@@ -27,7 +28,7 @@ import onResize from './lib/on-resize.js';
 /**
  * An area that represents the timeline providing functionality to select regions
  */
-export class RegionArea extends LitElement {
+export class RegionArea extends ResponsiveLitElement {
   /**
    * A mouse event offsetX coordinate
    */
@@ -83,23 +84,9 @@ export class RegionArea extends LitElement {
     this.addEventListener('mousemove', this.#onMouseMove);
     this.addEventListener('click', this.#handleClick);
     document.addEventListener('mouseup', e => this.#onMouseUp(e)); // mouse up _anywhere_ (not just in this element) will also trigger the select-end behaviour
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-    setTimeout(() => {
-      this.#onResizeCallback = onResize(
-        this.shadowRoot.firstElementChild,
-        () => {
-          this.pixelsPerSecond = this.offsetWidth / this.totalDuration;
-        },
-      );
-    }, 0);
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    this.#onResizeCallback?.un();
+    this.addEventListener('resize', () => {
+      this.pixelsPerSecond = this.offsetWidth / this.totalDuration;
+    });
   }
 
   updated(changedProperties) {
