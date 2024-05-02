@@ -23,7 +23,6 @@ import rowStyles from './styles/row.js';
 import backgroundStyles from './styles/backgrounds.js';
 import utilitiesStyles from './styles/utilities.js';
 import formatSeconds from './lib/format-seconds.js';
-import onResize from './lib/on-resize.js';
 
 /**
  * An area that represents the timeline providing functionality to select regions
@@ -38,12 +37,6 @@ export class RegionArea extends ResponsiveLitElement {
    * A Date representing when the mouse was clicked
    */
   #mouseDownTime;
-
-  /**
-   * @function
-   * @private
-   */
-  #onResizeCallback;
 
   static get styles() {
     return [
