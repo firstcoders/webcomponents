@@ -22,6 +22,7 @@ import rowStyles from './styles/row.js';
 import backgroundStyles from './styles/backgrounds.js';
 import utilitiesStyles from './styles/utilities.js';
 import formatSeconds from './lib/format-seconds.js';
+import onResize from './lib/on-resize.js';
 
 /**
  * An area that represents the timeline providing functionality to select regions
@@ -36,6 +37,12 @@ export class RegionArea extends LitElement {
    * A Date representing when the mouse was clicked
    */
   #mouseDownTime;
+
+  /**
+   * @function
+   * @private
+   */
+  #onResizeCallback;
 
   static get styles() {
     return [
@@ -67,6 +74,7 @@ export class RegionArea extends LitElement {
     totalDuration: { type: Number },
     offset: { type: Number },
     duration: { type: Number },
+    pixelsPerSecond: { state: true },
   };
 
   constructor() {
@@ -77,9 +85,35 @@ export class RegionArea extends LitElement {
     document.addEventListener('mouseup', e => this.#onMouseUp(e)); // mouse up _anywhere_ (not just in this element) will also trigger the select-end behaviour
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    setTimeout(() => {
+      this.#onResizeCallback = onResize(
+        this.shadowRoot.firstElementChild,
+        () => {
+          this.pixelsPerSecond = this.offsetWidth / this.totalDuration;
+        },
+      );
+    }, 0);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.#onResizeCallback?.un();
+  }
+
+  updated(changedProperties) {
+    changedProperties.forEach((oldValue, propName) => {
+      if (propName === 'totalDuration') {
+        this.pixelsPerSecond = this.offsetWidth / this.totalDuration;
+      }
+    });
+  }
+
   render() {
-    return html`${this.offset && this.duration
-      ? html`<div
+    return html`<div class="w100 h100">
+      ${this.offset && this.duration
+        ? html`<div
             class="h100 absolute left w2 ztop"
             style="left: calc(${this.pixelsPerSecond * this.offset}px - 50px);"
           >
@@ -99,8 +133,9 @@ export class RegionArea extends LitElement {
           </div>
           <div
             class="h100 absolute right w2 ztop"
-            style="left: ${this.pixelsPerSecond *
-            (this.offset + this.duration)}px; top: 0;"
+            style="left: ${
+              this.pixelsPerSecond * (this.offset + this.duration)
+            }px; top: 0;"
           >
             <div class="w2 hRow textCenter noSelect textXs">
               ${formatSeconds(this.offset + this.duration)}
@@ -110,8 +145,9 @@ export class RegionArea extends LitElement {
               class="hRow w2"
               type="deselect"
             ></soundws-player-button>
-          </div>`
-      : ''}`;
+          </div></div>`
+        : ''}
+    </div>`;
   }
 
   #onMouseDown(e) {
@@ -202,16 +238,5 @@ export class RegionArea extends LitElement {
     const duration = Math.floor((width / pixelsPerSecond) * 100) / 100;
 
     return { left, width, offset, duration };
-  }
-
-  /**
-   * Gets the pixels per second, calculated by assessing the element width and the duration it represents
-   *
-   * @returns {Number|undefined}
-   */
-  get pixelsPerSecond() {
-    return this.totalDuration
-      ? this.offsetWidth / this.totalDuration
-      : undefined;
   }
 }

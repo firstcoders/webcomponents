@@ -154,7 +154,7 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
         type="loop"
       ></soundws-player-button>
       ${this.displayMode !== 'xs'
-        ? html`<div class="w7 truncate hideXs px4 textCenter">
+        ? html`<div class="w9 truncate hideXs px4 textCenter">
             <span>${this.label}</span>
           </div>`
         : ''}

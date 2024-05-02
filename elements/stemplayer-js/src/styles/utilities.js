@@ -29,6 +29,10 @@ export default css`
     overflow: hidden;
   }
 
+  .w100 {
+    width: 100%;
+  }
+
   .h100 {
     height: 100%;
   }
