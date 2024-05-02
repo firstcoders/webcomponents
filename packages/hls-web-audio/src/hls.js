@@ -33,7 +33,6 @@ class HLS {
     fetchOptions = {},
     start = 0,
     duration = undefined,
-    offset = 0,
   } = {}) {
     // optionally set or create controller
     this.controller = controller || new Controller();
@@ -80,8 +79,6 @@ class HLS {
 
     // duration override
     this.duration = duration;
-
-    this.offset = offset;
   }
 
   set start(start) {
@@ -91,15 +88,6 @@ class HLS {
 
   get start() {
     return this.stack.start;
-  }
-
-  set offset(offset) {
-    this.stack.offset = offset;
-    this.controller?.notify('offset', this);
-  }
-
-  get offset() {
-    return this.stack.offset;
   }
 
   destroy() {

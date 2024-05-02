@@ -274,7 +274,7 @@ class Controller extends Observer {
 
     const max = Math.max.apply(
       null,
-      this.hls.map((hls) => hls.totalDuration).filter((duration) => !!duration),
+      this.hls.map((hls) => hls.end).filter((duration) => !!duration),
     );
 
     // store the previously calculated value

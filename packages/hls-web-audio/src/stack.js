@@ -36,6 +36,11 @@ export default class {
    */
   nextMarginSeconds;
 
+  /**
+   * @property {Number|undefined} - a duration set externally rather than derived from loaded audio
+   */
+  #duration;
+
   constructor({ start = 0, nextMarginSeconds = 5 } = {}) {
     this.initialStartTime = start;
     this.startPointer = start;
@@ -116,7 +121,7 @@ export default class {
   /**
    * The default duration as defined by the audio segments
    */
-  get totalDuration() {
+  get audioDuration() {
     return this.startPointer;
   }
 
@@ -126,11 +131,16 @@ export default class {
    * @returns {Number|undefined}
    */
   get duration() {
-    return this.durationOverride || this.totalDuration;
+    return this.#duration || this.audioDuration;
   }
 
+  /**
+   * Manually set the duration
+   *
+   * @param {Number} duration - the duration
+   */
   set duration(duration) {
-    this.durationOverride = duration;
+    this.#duration = duration;
   }
 
   /**

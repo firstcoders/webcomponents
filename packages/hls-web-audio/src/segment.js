@@ -84,8 +84,6 @@ class Segment {
     if (this.sourceNode) throw new Error('Cannot connect a segment twice');
     if (!this.arrayBuffer) throw new Error('Cannot connect. No audio data in buffer.');
 
-    console.log(this.start, { start, offset, stop, loopEnd, act: ac.currentTime });
-
     const audioBuffer = await ac.decodeAudioData(this.arrayBuffer);
 
     // update the expected duration (from m3u8 file) with the real duration from the decoded audio
