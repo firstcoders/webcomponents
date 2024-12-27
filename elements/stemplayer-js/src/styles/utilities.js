@@ -21,6 +21,15 @@ export default css`
     position: relative;
   }
 
+  .dInline {
+    display: inline;
+  }
+
+  .hAuto {
+    height: max-content;
+    line-height: normal;
+  }
+
   .absolute {
     position: absolute;
   }
@@ -40,5 +49,46 @@ export default css`
   .noSelect {
     user-select: none;
     -webkit-user-select: none;
+  }
+
+  .stickLeft {
+    position: sticky;
+    left: 0;
+  }
+
+  .stickRight {
+    position: sticky;
+    right: 0;
+  }
+
+  .z99 {
+    z-index: 99;
+  }
+
+  .z999 {
+    z-index: 990;
+  }
+
+  .op75 {
+    opacity: 0.75;
+  }
+
+  .ppsWidth {
+    width: calc(
+      var(--stemplayer-duration) * var(--soundws-waveform-pixels-per-second) *
+        1px
+    );
+  }
+
+  .top {
+    top: 0;
+  }
+
+  .bottom {
+    bottom: 0;
+  }
+
+  .right {
+    right: 0;
   }
 `;

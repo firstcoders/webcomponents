@@ -147,6 +147,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       loop: { type: Boolean },
 
       /**
+       * Zoom waveform
+       */
+      zoom: { type: Number },
+
+      /**
        * Disabled the mouseover hover effect
        */
       noHover: { type: Boolean, attribute: 'no-hover' },
@@ -209,6 +214,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     this.noKeyboardEvents = false;
     this.#debouncedMergePeaks = debounce(this.#mergePeaks, 100);
     this.regions = false;
+    this.zoom = 1;
   }
 
   firstUpdated() {
@@ -245,19 +251,19 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
     // when scrolling in the regions overlay, which is absolutely positioned, this does not trigger scrolling of the scrollWrapper
     // this is to "forward" any scroll events
-    const el = this.shadowRoot.querySelector('.scrollWrapper');
+    // const el = this.shadowRoot.querySelector('.scrollWrapper');
 
-    this.addEventListener('wheel', e => {
-      // we prevent default when scolling the scrollWrapper, however when we have scrolled the full length, we want the scroll to apply to the document (like usual)
-      // we store the before, and compare it to the after scrollTop - if it's the same, we infer that the full length has been scrolled
-      const { scrollTop: before } = el;
+    // this.addEventListener('wheel', e => {
+    //   // we prevent default when scolling the scrollWrapper, however when we have scrolled the full length, we want the scroll to apply to the document (like usual)
+    //   // we store the before, and compare it to the after scrollTop - if it's the same, we infer that the full length has been scrolled
+    //   const { scrollTop: before } = el;
 
-      el.scrollTop += e.deltaY;
+    //   el.scrollTop += e.deltaY;
 
-      if (before !== el.scrollTop) {
-        e.preventDefault();
-      }
-    });
+    //   if (before !== el.scrollTop) {
+    //     e.preventDefault();
+    //   }
+    // });
 
     this.addEventListener('controls:seeking', () => {
       if (controller.state === 'running') {
@@ -331,6 +337,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       });
 
       this.audioDuration = duration;
+
+      // this.style.setProperty('--stemplayer-duration', duration);
     });
 
     controller.on('offset', () => {
@@ -606,6 +614,12 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       ...this.stemComponents.map(c => c.peaks).filter(e => !!e),
     );
 
+    const pps = this.stemComponents[0].waveformContainerWidth / peaks.duration;
+    this.style.setProperty(
+      '--soundws-waveform-pixels-per-second',
+      pps * this.zoom,
+    );
+
     // pass the combined peaks to the controls component
     this.slottedElements
       .filter(el => el instanceof ControlComponent)
@@ -665,7 +679,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     e.stopPropagation();
 
     if (e.target instanceof StemComponent) {
-      this.#debouncedMergePeaks();
+      this.#debouncedMergePeaks(e);
     }
 
     // calculate the positioning of the region element

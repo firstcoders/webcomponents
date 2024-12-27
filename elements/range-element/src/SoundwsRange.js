@@ -149,12 +149,12 @@ export class SoundwsRange extends LitElement {
           border-color: var(--soundws-range-border-color, #01a4b3);
         }
 
-        input:focus {
+        /* input:focus {
           background-color: var(
             --soundws-range-focus-background-color,
             rgb(1, 164, 179)
           );
-        }
+        } */
 
         .sr {
           position: absolute;

@@ -21,7 +21,7 @@ export default css`
     position: relative;
     line-height: var(--stemplayer-js-row-height, 4.5rem);
     height: var(--stemplayer-js-row-height, 4.5rem);
-    overflow: hidden;
+    /* overflow-y: hidden; */
     user-select: none;
   }
 

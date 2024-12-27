@@ -22,6 +22,7 @@ import flexStyles from './styles/flex.js';
 import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
 import bgStyles from './styles/backgrounds.js';
+import utilityStyle from './styles/utilities.js';
 import formatSeconds from './lib/format-seconds.js';
 import { defaults } from './config.js';
 import { computeWaveformStyles } from './lib/compute-styles.js';
@@ -44,6 +45,7 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
       spacingStyles,
       typographyStyles,
       bgStyles,
+      utilityStyle,
       css`
         :host {
           --soundws-player-button-color: var(
@@ -139,33 +141,39 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   render() {
     const styles = this.#computedWaveformStyles;
 
-    return html`<div class="dFlex flexRow row">
-      <soundws-player-button
-        class="w2"
-        .disabled=${!this.duration}
-        @click=${this.isPlaying ? this.#onPauseClick : this.#onPlayClick}
-        .title=${this.isPlaying ? 'Pause' : 'Play'}
-        .type=${this.isPlaying ? 'pause' : 'play'}
-      ></soundws-player-button>
-      <soundws-player-button
-        class="w2 ${this.loop ? '' : 'textMuted'}"
-        @click=${this.#toggleLoop}
-        .title=${this.loop ? 'Disable loop' : 'Enable Loop'}
-        type="loop"
-      ></soundws-player-button>
-      ${this.displayMode !== 'xs'
-        ? html`<div class="w9 truncate hideXs px4 textCenter">
-            <span>${this.label}</span>
-          </div>`
-        : ''}
-      <div class="w2 textXs textMuted pr1 textCenter">
-        <span>${formatSeconds(this.currentTime || 0)}</span>
+    return html`<div class="dFlex flexRow row ppsWidth">
+      <div class="dFlex stickLeft bgPlayer z99">
+        <soundws-player-button
+          class="w2 flexNoShrink"
+          .disabled=${!this.duration}
+          @click=${this.isPlaying ? this.#onPauseClick : this.#onPlayClick}
+          .title=${this.isPlaying ? 'Pause' : 'Play'}
+          .type=${this.isPlaying ? 'pause' : 'play'}
+        ></soundws-player-button>
+        <soundws-player-button
+          class="w2 flexNoShrink ${this.loop ? '' : 'textMuted'}"
+          @click=${this.#toggleLoop}
+          .title=${this.loop ? 'Disable loop' : 'Enable Loop'}
+          type="loop"
+        ></soundws-player-button>
+        ${this.displayMode !== 'xs'
+          ? html`<div
+              class="w9 truncate hideXs px4 pr5 textCenter flexNoShrink"
+            >
+              <span>${this.label}</span>
+            </div>`
+          : ''}
+        <div
+          class="w2 truncate textCenter flexNoShrink z99 bgPlayer op75 top right textXs"
+        >
+          <span>${formatSeconds(this.currentTime || 0)}</span>
+        </div>
       </div>
+
       ${this.displayMode === 'lg' && this._rowHeight
         ? html`<div class="flex1">
             <soundws-waveform
               .peaks=${this.peaks}
-              .duration=${this.duration}
               .progress=${this.currentPct}
               .progressColor=${styles.waveProgressColor}
               .waveColor=${styles.waveColor}
@@ -176,15 +184,16 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
           </div>`
         : html`<soundws-range
             label="progress"
-            class="focusBgBrand px1 flex1"
+            class="focusBgBrand px1 flex1 flexNoShrink w2"
             .value=${this.currentPct * 100}
             @input=${this.#handleSeeking}
             @change=${this.#debouncedHandleSeek}
           ></soundws-range>`}
-      <div class="w2 truncate textXs textMuted textCenter">
-        <span>${formatSeconds(this.duration)}</span>
-      </div>
+
       <slot name="end"></slot>
+      <div class="w2 flexNoShrink stickRight op75 textCenter textXs z99">
+        <span class="p2 bgPlayer">${formatSeconds(this.duration)}</span>
+      </div>
     </div>`;
   }
 

@@ -16,6 +16,7 @@ export class SoundwsWaveform extends LitElement {
     return css`
       :host {
         display: block;
+        overflow: hidden;
         height: 100%;
         width: 100%;
         max-width: 100%;
@@ -30,7 +31,6 @@ export class SoundwsWaveform extends LitElement {
 
   static properties = {
     src: { type: String },
-    duration: { type: Number },
     progress: { type: Number },
     waveColor: { type: String },
     progressColor: { type: String },
@@ -112,15 +112,6 @@ export class SoundwsWaveform extends LitElement {
         this.#destroyDrawer();
         this.drawPeaks();
       }
-      if (propName === 'duration') {
-        if (
-          this.peaks &&
-          Math.ceil(this.peaks.duration * 10) / 10 !==
-            Math.ceil(this.duration * 10) / 10
-        ) {
-          this.peaks = this.peaks.setDuration(this.duration);
-        }
-      }
     });
   }
 
@@ -159,8 +150,7 @@ export class SoundwsWaveform extends LitElement {
         throw error;
       }
 
-      let peaks = new Peaks(await r.json());
-      if (this.duration) peaks = peaks.setDuration(this.duration);
+      const peaks = new Peaks(await r.json());
       this.peaks = peaks;
 
       this.dispatchEvent(new Event('load'));
@@ -229,6 +219,10 @@ export class SoundwsWaveform extends LitElement {
     if (this.drawPeaksAnimFrame) cancelAnimationFrame(this.drawPeaksAnimFrame);
 
     if (this.clientWidth === 0) return;
+
+    // set the width of the element
+    const defaultPixelsPerSecond = this.clientWidth / this.peaks.duration;
+    this.style.width = `calc(var(--soundws-waveform-pixels-per-second, ${defaultPixelsPerSecond}) * ${this.peaks.duration}px)`;
 
     if (!this.drawer) this.createDrawer();
 
