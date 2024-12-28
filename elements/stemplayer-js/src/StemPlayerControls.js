@@ -149,8 +149,8 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   #getLargeScreenTpl() {
     const styles = this.#computedWaveformStyles;
 
-    return html`<div class="row dFlex ppsWidth">
-      <div class="dFlex stickLeft bgPlayer z99 flexNoShrink wControls">
+    return html`<stemplayer-js-row>
+      <div slot="controls" class="dFlex h100">
         <soundws-player-button
           class="w2 flexNoShrink"
           .disabled=${!this.duration}
@@ -168,30 +168,34 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
           ${this.label}
         </div>
         <div
-          class="w2 truncate textCenter flexNoShrink z99 bgPlayer op75 top right textXs"
+          class="w2 textCenter flexNoShrink z99 bgPlayer op75 top right textXs"
         >
           ${formatSeconds(this.currentTime || 0)}
         </div>
       </div>
-      ${this._rowHeight
-        ? html`<div class="flex1">
-            <soundws-waveform
-              .peaks=${this.peaks}
-              .progress=${this.currentPct}
-              .waveColor=${styles.waveColor}
-              .barWidth=${styles.barWidth}
-              .barGap=${styles.barGap}
-              .pixelRatio=${styles.devicePixelRatio}
-            ></soundws-waveform>
-          </div>`
-        : ''}
-      <slot name="end"></slot>
-      <div
-        class="wSpacer flexNoShrink stickRight op75 textCenter textXs z99 bgPlayer"
-      >
-        <span class="p2 ">${formatSeconds(this.duration)}</span>
+        ${
+          styles
+            ? html`
+                <soundws-waveform
+                  class="h100"
+                  slot="flex"
+                  .peaks=${this.peaks}
+                  .progress=${this.currentPct}
+                  .waveColor=${styles.waveColor}
+                  .barWidth=${styles.barWidth}
+                  .barGap=${styles.barGap}
+                  .pixelRatio=${styles.devicePixelRatio}
+                ></soundws-waveform>
+              `
+            : ''
+        }
       </div>
-    </div>`;
+      <div
+        slot="end"
+      >
+        <span class="p2 textXs">${formatSeconds(this.duration)}</span>
+      </div>
+    </stemplayer-js-row>`;
   }
 
   #getSmallScreenTpl() {

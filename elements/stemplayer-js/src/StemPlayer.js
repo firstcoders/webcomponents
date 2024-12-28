@@ -492,6 +492,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
       </div>
       ${!this.noHover ? html`<div class="hover"></div>` : ''}
+      <stemplayer-js-row class="absolute w100 h100"></stemplayer-js-row>
     </div>`;
   }
 
@@ -639,16 +640,16 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       ...this.stemComponents.map(c => c.peaks).filter(e => !!e),
     );
 
-    const computedStyle = getComputedStyle(this);
-    console.log(
-      computedStyle.getPropertyValue('--stemplayer-js-row-controls-width'),
-    );
-
-    const pps = this.clientWidth / peaks.duration;
-    this.style.setProperty(
-      '--soundws-waveform-pixels-per-second',
-      pps * this.zoom,
-    );
+    const rowEl = this.shadowRoot.querySelector('stemplayer-js-row');
+    if (rowEl) {
+      const pps =
+        this.shadowRoot.querySelector('stemplayer-js-row').flexWidth /
+        peaks.duration;
+      this.style.setProperty(
+        '--soundws-waveform-pixels-per-second',
+        pps * this.zoom,
+      );
+    }
 
     // pass the combined peaks to the controls component
     this.slottedElements

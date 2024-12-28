@@ -271,13 +271,13 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
     return html`<stemplayer-js-row>
       <div slot="controls" class="dFlex h100">
         <soundws-player-button
-          class="w2 flexNoShrink"
+          class="w2 overflowHidden"
           @click=${this.solo === 'on' ? this.#onUnSoloClick : this.#onSoloClick}
           .title=${this.solo === 'on' ? 'Disable solo' : 'Solo'}
           .type=${this.solo === 'on' ? 'unsolo' : 'solo'}
         ></soundws-player-button>
         <soundws-player-button
-          class="w2"
+          class="w2 overflowHidden"
           @click=${this.#toggleMute}
           .title="${this.muted || this.volume === 0 ? 'Unmute' : 'Mute'}"
           type="${this.muted || this.volume === 0 ? 'unmute' : 'mute'}"

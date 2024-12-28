@@ -73,13 +73,6 @@ export default css`
     opacity: 0.75;
   }
 
-  .ppsWidth {
-    width: calc(
-      var(--stemplayer-duration) * var(--soundws-waveform-pixels-per-second) *
-        1px
-    );
-  }
-
   .top {
     top: 0;
   }

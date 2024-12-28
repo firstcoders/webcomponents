@@ -72,16 +72,24 @@ export class Row extends ResponsiveLitElement {
    */
   // eslint-disable-next-line class-methods-use-this
   #getLargeScreenTpl() {
-    return html`<div class="row dFlex ppsWidth">
+    return html`<div class="row dFlex">
       <div class="wControls flexNoShrink stickLeft bgPlayer z99">
         <slot name="controls"></slot>
       </div>
       <div class="flex1">
         <slot name="flex"></slot>
       </div>
-      <div class="wSpacer flexNoShrink">
+      <div class="wSpacer flexNoShrink stickRight bgPlayer z99 op75">
         <slot name="end"></slot>
       </div>
     </div>`;
+  }
+
+  get flexWidth() {
+    return (
+      this.clientWidth -
+      this.shadowRoot.querySelector('.wControls').clientWidth -
+      this.shadowRoot.querySelector('.wSpacer').clientWidth
+    );
   }
 }
