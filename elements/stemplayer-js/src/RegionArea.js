@@ -61,6 +61,7 @@ export class RegionArea extends ResponsiveLitElement {
           display: block;
           width: fit-content;
           min-width: 100%;
+          border: 1px solid red;
         }
 
         .mask {
@@ -102,8 +103,8 @@ export class RegionArea extends ResponsiveLitElement {
     duration: { type: Number },
     pixelsPerSecond: { state: true },
     cursorPosition: { state: true },
-    mouseEventLeft: { type: Number },
-    mouseEventRight: { type: Number },
+    mouseEventOffset: { type: Number },
+    mouseEventEnd: { type: Number },
   };
 
   constructor() {
@@ -113,10 +114,8 @@ export class RegionArea extends ResponsiveLitElement {
     this.addEventListener('click', this.#handleClick);
     this.addEventListener('resize', () => {
       this.pixelsPerSecond =
-        (this.offsetWidth - this.mouseEventLeft - this.mouseEventRight) /
+        (this.offsetWidth - this.mouseEventOffset - this.mouseEventEnd) /
         this.totalDuration;
-
-      console.log(this.pixelsPerSecond);
     });
     this.addEventListener('pointermove', this.#onHover);
   }
@@ -144,7 +143,7 @@ export class RegionArea extends ResponsiveLitElement {
     return html`<div>
       ${this.offset > 0 && this.duration < this.totalDuration
         ? html`
-        <div class="absolute h100 z999 mask dashed" style="left: calc(${this.pixelsPerSecond * this.offset + this.mouseEventLeft}px); width: ${Math.round(
+        <div class="absolute h100 z999 mask dashed" style="left: ${this.pixelsPerSecond * this.offset + this.mouseEventOffset}px; width: ${Math.round(
           this.pixelsPerSecond * this.duration,
         )}px;">
           <div
@@ -172,7 +171,7 @@ style="right: -50px;"
             ></soundws-player-button>
           </div></div></div>`
         : ''}
-      <div class="cursor dashed w2 z99 noPointerEvents">
+      <div class="cursor dashed w2 z999 noPointerEvents">
         <div class="w2 hRow textCenter textXs">
           <span class="bgPlayer p1 muted"
             >${formatSeconds(this.cursorPosition)}</span
@@ -186,12 +185,12 @@ style="right: -50px;"
   #onMouseDown(e) {
     this.#mouseDownX = e.offsetX;
 
-    if (e.offsetX < this.mouseEventLeft) {
-      this.#mouseDownX = this.mouseEventLeft;
+    if (e.offsetX < this.mouseEventOffset) {
+      this.#mouseDownX = this.mouseEventOffset;
     }
 
-    if (e.offsetX > this.#mouseEventAbsoluteRight) {
-      this.#mouseDownX = this.#mouseEventAbsoluteRight;
+    if (e.offsetX > this.offsetWidth - this.mouseEventEnd) {
+      this.#mouseDownX = this.offsetWidth - this.mouseEventEnd;
     }
 
     this.#mouseDownTime = new Date();
@@ -200,8 +199,8 @@ style="right: -50px;"
   #onMouseMove(e) {
     if (
       this.#mouseDownX !== undefined &&
-      e.offsetX > this.mouseEventLeft &&
-      e.offsetX < this.#mouseEventAbsoluteRight
+      e.offsetX > this.mouseEventOffset &&
+      e.offsetX < this.offsetWidth - this.mouseEventEnd
     ) {
       this.lastOffsetX = e.offsetX;
       const distance = Math.abs(e.offsetX - this.#mouseDownX);
@@ -276,7 +275,7 @@ style="right: -50px;"
     const left = coord1 < coord2 ? coord1 : coord2;
     const width = this.#mouseMoveWidth;
     const offset =
-      Math.floor(((left - this.mouseEventLeft) / pixelsPerSecond) * 100) / 100;
+      Math.floor((this.toRelativeX(left) / pixelsPerSecond) * 100) / 100;
     const duration = Math.floor((width / pixelsPerSecond) * 100) / 100;
 
     return { offset, duration };
@@ -287,15 +286,17 @@ style="right: -50px;"
    */
   #onHover(e) {
     const el = this.shadowRoot.querySelector('.cursor');
-    el.style.left =
-      e.offsetX <= this.offsetWidth ? `${e.offsetX}px` : this.offsetWidth;
 
-    if (e.offsetX < this.mouseEventLeft) return;
-    if (e.offsetX > this.#mouseEventAbsoluteRight) return;
+    if (!this.xIsInMouseEventArea(e.offsetX)) {
+      el.style.left = `-10000px`;
+      return;
+    }
+
+    el.style.left = `${e.offsetX}px`;
 
     this.cursorPosition =
       Math.round(
-        ((e.offsetX - this.mouseEventLeft) / this.#mouseEventWidth) *
+        (this.toRelativeX(e.offsetX) / this.#mouseEventAreaWidth) *
           this.totalDuration *
           10,
       ) / 10;
@@ -309,11 +310,17 @@ style="right: -50px;"
     );
   }
 
-  get #mouseEventWidth() {
-    return this.offsetWidth - this.mouseEventLeft - this.mouseEventRight;
+  get #mouseEventAreaWidth() {
+    return this.offsetWidth - this.mouseEventOffset - this.mouseEventEnd;
   }
 
-  get #mouseEventAbsoluteRight() {
-    return this.offsetWidth - this.mouseEventRight;
+  xIsInMouseEventArea(offsetX) {
+    if (offsetX < this.mouseEventOffset) return false;
+    if (offsetX > this.offsetWidth - this.mouseEventEnd) return false;
+    return true;
+  }
+
+  toRelativeX(offsetX) {
+    return offsetX - this.mouseEventOffset;
   }
 }

@@ -181,8 +181,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
        */
       noKeyboardEvents: { type: Boolean, attribute: 'no-keyboard-events' },
 
-      regionLeft: { state: true },
-      regionWidth: { state: true },
       audioDuration: { state: true },
       regionOffset: { state: true },
       regionDuration: { state: true },
@@ -472,8 +470,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           .duration=${this.regionDuration}
           @region:update=${this.#onRegionUpdate}
           @region:change=${this.#onRegionChange}
-          mouseEventLeft="384"
-          mouseEventRight="48"
+          mouseEventOffset="384"
+          mouseEventEnd="48"
         >
           ${this.isLoading
             ? html`<soundws-mask>
@@ -484,8 +482,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           <slot name="header" @slotchange=${this.#onSlotChange}></slot>
           <slot class="default" @slotchange=${this.#onSlotChange}></slot>
           <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
-          <stemplayer-js-row class="absolute w100 h100"></stemplayer-js-row
-        ></stemplayer-js-region>
+          ></stemplayer-js-region
+        >
       </div>
     </div>`;
   }
@@ -634,18 +632,19 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       ...this.stemComponents.map(c => c.peaks).filter(e => !!e),
     );
 
-    const rowEl = this.shadowRoot.querySelector('stemplayer-js-row');
-    if (rowEl) {
-      const pps =
-        this.shadowRoot.querySelector('stemplayer-js-row').flexWidth /
-        peaks.duration;
-      this.style.setProperty(
-        '--soundws-waveform-pixels-per-second',
-        pps * this.zoom,
-      );
+    // const rowEl = this.shadowRoot.querySelector('stemplayer-js-row');
+    // if (rowEl) {
+    //   const pps =
+    //     this.shadowRoot.querySelector('stemplayer-js-row').flexWidth /
+    //     peaks.duration;
 
-      console.log({ pps });
-    }
+    const pps = (this.clientWidth - 384 - 48) / this.#controller.duration;
+
+    this.style.setProperty(
+      '--soundws-waveform-pixels-per-second',
+      pps * this.zoom,
+    );
+    // }
 
     // pass the combined peaks to the controls component
     this.slottedElements
@@ -708,12 +707,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     if (e.target instanceof StemComponent) {
       this.#debouncedMergePeaks(e);
     }
-
-    // calculate the positioning of the region element
-    // @todo Not sure why but offsetLeft leaves 1 pixel of the underlying waveform visible
-    const padding = 1;
-    this.regionLeft = `${e.detail.offsetLeft - padding}px`;
-    this.regionWidth = `${e.detail.offsetWidth + padding}px`;
   }
 
   /**
