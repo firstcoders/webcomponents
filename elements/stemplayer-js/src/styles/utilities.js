@@ -73,6 +73,10 @@ export default css`
     opacity: 0.75;
   }
 
+  .op0 {
+    opacity: 0;
+  }
+
   .top {
     top: 0;
   }
@@ -83,5 +87,9 @@ export default css`
 
   .right {
     right: 0;
+  }
+
+  .noPointerEvents {
+    pointer-events: none;
   }
 `;

@@ -73,7 +73,7 @@ export class Row extends ResponsiveLitElement {
   // eslint-disable-next-line class-methods-use-this
   #getLargeScreenTpl() {
     return html`<div class="row dFlex">
-      <div class="wControls flexNoShrink stickLeft bgPlayer z99">
+      <div class="wControls flexNoShrink stickLeft bgPlayer z999">
         <slot name="controls"></slot>
       </div>
       <div class="flex1">

@@ -59,8 +59,6 @@ export class RegionArea extends ResponsiveLitElement {
       css`
         :host {
           display: block;
-          width: fit-content;
-          min-width: 100%;
         }
 
         .mask {
@@ -102,8 +100,6 @@ export class RegionArea extends ResponsiveLitElement {
     duration: { type: Number },
     pixelsPerSecond: { state: true },
     cursorPosition: { state: true },
-    mouseEventLeft: { type: Number },
-    mouseEventRight: { type: Number },
   };
 
   constructor() {
@@ -112,11 +108,7 @@ export class RegionArea extends ResponsiveLitElement {
     this.addEventListener('mousemove', this.#onMouseMove);
     this.addEventListener('click', this.#handleClick);
     this.addEventListener('resize', () => {
-      this.pixelsPerSecond =
-        (this.offsetWidth - this.mouseEventLeft - this.mouseEventRight) /
-        this.totalDuration;
-
-      console.log(this.pixelsPerSecond);
+      this.pixelsPerSecond = this.offsetWidth / this.totalDuration;
     });
     this.addEventListener('pointermove', this.#onHover);
   }
@@ -141,26 +133,31 @@ export class RegionArea extends ResponsiveLitElement {
   }
 
   render() {
-    return html`<div>
+    return html`<div class="w100 h100">
       ${this.offset > 0 && this.duration < this.totalDuration
-        ? html`
-        <div class="absolute h100 z999 mask dashed" style="left: calc(${this.pixelsPerSecond * this.offset + this.mouseEventLeft}px); width: ${Math.round(
-          this.pixelsPerSecond * this.duration,
-        )}px;">
-          <div
-            class="h100 absolute left w2 z99"
-            style="left: -50px;"
+        ? html`<div
+            class="h100 absolute left w2 ztop"
+            style="left: calc(${this.pixelsPerSecond * this.offset}px - 50px);"
           >
             <div class="w2 hRow textCenter textXs">
               ${formatSeconds(this.offset)}
             </div>
           </div>
           <div class="h100 overflowHidden">
-
+            <div
+              class="mask dashed h100 relative"
+              style="left: ${Math.round(
+                this.pixelsPerSecond * this.offset,
+              )}px; width: ${Math.round(
+                this.pixelsPerSecond * this.duration,
+              )}px;"
+            ></div>
           </div>
           <div
-            class="h100 absolute right w2 z99 top"
-style="right: -50px;"
+            class="h100 absolute right w2 ztop"
+            style="left: ${
+              this.pixelsPerSecond * (this.offset + this.duration)
+            }px; top: 0;"
           >
             <div class="w2 hRow textCenter textXs">
               ${formatSeconds(this.offset + this.duration)}
@@ -170,28 +167,27 @@ style="right: -50px;"
               class="hRow w2"
               type="deselect"
             ></soundws-player-button>
-          </div></div></div>`
+          </div></div>`
         : ''}
-      <div class="cursor dashed w2 z99 noPointerEvents">
+      <div class="cursor dashed w2 zTop p1">
         <div class="w2 hRow textCenter textXs">
           <span class="bgPlayer p1 muted"
             >${formatSeconds(this.cursorPosition)}</span
           >
         </div>
       </div>
-      <slot></slot>
     </div>`;
   }
 
   #onMouseDown(e) {
     this.#mouseDownX = e.offsetX;
 
-    if (e.offsetX < this.mouseEventLeft) {
-      this.#mouseDownX = this.mouseEventLeft;
+    if (e.offsetX < 0) {
+      this.#mouseDownX = 0;
     }
 
-    if (e.offsetX > this.#mouseEventAbsoluteRight) {
-      this.#mouseDownX = this.#mouseEventAbsoluteRight;
+    if (e.offsetX > this.offsetWidth) {
+      this.#mouseDownX = this.offsetWidth;
     }
 
     this.#mouseDownTime = new Date();
@@ -200,8 +196,8 @@ style="right: -50px;"
   #onMouseMove(e) {
     if (
       this.#mouseDownX !== undefined &&
-      e.offsetX > this.mouseEventLeft &&
-      e.offsetX < this.#mouseEventAbsoluteRight
+      e.offsetX > 0 &&
+      e.offsetX < this.offsetWidth
     ) {
       this.lastOffsetX = e.offsetX;
       const distance = Math.abs(e.offsetX - this.#mouseDownX);
@@ -275,8 +271,7 @@ style="right: -50px;"
     const coord2 = this.lastOffsetX;
     const left = coord1 < coord2 ? coord1 : coord2;
     const width = this.#mouseMoveWidth;
-    const offset =
-      Math.floor(((left - this.mouseEventLeft) / pixelsPerSecond) * 100) / 100;
+    const offset = Math.floor((left / pixelsPerSecond) * 100) / 100;
     const duration = Math.floor((width / pixelsPerSecond) * 100) / 100;
 
     return { offset, duration };
@@ -290,15 +285,8 @@ style="right: -50px;"
     el.style.left =
       e.offsetX <= this.offsetWidth ? `${e.offsetX}px` : this.offsetWidth;
 
-    if (e.offsetX < this.mouseEventLeft) return;
-    if (e.offsetX > this.#mouseEventAbsoluteRight) return;
-
     this.cursorPosition =
-      Math.round(
-        ((e.offsetX - this.mouseEventLeft) / this.#mouseEventWidth) *
-          this.totalDuration *
-          10,
-      ) / 10;
+      Math.round((e.offsetX / this.offsetWidth) * this.totalDuration * 10) / 10;
 
     this.dispatchEvent(
       new CustomEvent('region:hover', {
@@ -307,13 +295,5 @@ style="right: -50px;"
         composed: true,
       }),
     );
-  }
-
-  get #mouseEventWidth() {
-    return this.offsetWidth - this.mouseEventLeft - this.mouseEventRight;
-  }
-
-  get #mouseEventAbsoluteRight() {
-    return this.offsetWidth - this.mouseEventRight;
   }
 }

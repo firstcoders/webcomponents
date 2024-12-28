@@ -121,12 +121,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           max-height: var(--stemplayer-js-max-height, auto);
           overflow: auto;
         }
-
-        stemplayer-js-region {
-          position: absolute;
-          height: 100%;
-          z-index: 100;
-        }
       `,
     ];
   }
@@ -471,28 +465,28 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
   #getLargeScreenTpl() {
     return html`<div class="relative overflowHidden noSelect">
-      ${this.isLoading
-        ? html`<soundws-mask>
+      <div class="scrollWrapper relative">
+        <stemplayer-js-region
+          .totalDuration=${this.audioDuration}
+          .offset=${this.regionOffset}
+          .duration=${this.regionDuration}
+          @region:update=${this.#onRegionUpdate}
+          @region:change=${this.#onRegionChange}
+          mouseEventLeft="384"
+          mouseEventRight="48"
+        >
+          ${this.isLoading
+            ? html`<soundws-mask>
             <soundws-loader></soundws-loader></soundws-icon>
           </soundws-mask>`
-        : ''}
-      ${this.regions && this.regionLeft && this.regionWidth
-        ? html`<stemplayer-js-region
-            .totalDuration=${this.audioDuration}
-            .offset=${this.regionOffset}
-            .duration=${this.regionDuration}
-            @region:update=${this.#onRegionUpdate}
-            @region:change=${this.#onRegionChange}
-            style="left: ${this.regionLeft}; width: ${this.regionWidth}"
-          ></stemplayer-js-region>`
-        : ''}
-      <div class="scrollWrapper">
-        <slot name="header" @slotchange=${this.#onSlotChange}></slot>
-        <slot class="default" @slotchange=${this.#onSlotChange}></slot>
-        <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
+            : ''}
+
+          <slot name="header" @slotchange=${this.#onSlotChange}></slot>
+          <slot class="default" @slotchange=${this.#onSlotChange}></slot>
+          <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
+          <stemplayer-js-row class="absolute w100 h100"></stemplayer-js-row
+        ></stemplayer-js-region>
       </div>
-      ${!this.noHover ? html`<div class="hover"></div>` : ''}
-      <stemplayer-js-row class="absolute w100 h100"></stemplayer-js-row>
     </div>`;
   }
 
@@ -649,6 +643,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         '--soundws-waveform-pixels-per-second',
         pps * this.zoom,
       );
+
+      console.log({ pps });
     }
 
     // pass the combined peaks to the controls component
