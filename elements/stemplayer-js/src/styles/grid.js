@@ -56,4 +56,12 @@ export default css`
   .w11 {
     width: calc(var(--stemplayer-js-grid-base, 1.5rem) * 11);
   }
+
+  .wControls {
+    width: var(--stemplayer-js-row-controls-width);
+  }
+
+  .wSpacer {
+    width: var(--stemplayer-js-row-end-width);
+  }
 `;

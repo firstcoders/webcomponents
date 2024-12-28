@@ -139,10 +139,18 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   }
 
   render() {
+    return html`<div>
+      ${this.displayMode === 'lg'
+        ? this.#getLargeScreenTpl()
+        : this.#getSmallScreenTpl()}
+    </div>`;
+  }
+
+  #getLargeScreenTpl() {
     const styles = this.#computedWaveformStyles;
 
-    return html`<div class="dFlex flexRow row ppsWidth">
-      <div class="dFlex stickLeft bgPlayer z99">
+    return html`<div class="row dFlex ppsWidth">
+      <div class="dFlex stickLeft bgPlayer z99 flexNoShrink wControls">
         <soundws-player-button
           class="w2 flexNoShrink"
           .disabled=${!this.duration}
@@ -156,43 +164,73 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
           .title=${this.loop ? 'Disable loop' : 'Enable Loop'}
           type="loop"
         ></soundws-player-button>
-        ${this.displayMode !== 'xs'
-          ? html`<div
-              class="w9 truncate hideXs px4 pr5 textCenter flexNoShrink"
-            >
-              <span>${this.label}</span>
-            </div>`
-          : ''}
+        <div class="flex1 truncate hideXs px4 pr5 textCenter flexNoShrink">
+          ${this.label}
+        </div>
         <div
           class="w2 truncate textCenter flexNoShrink z99 bgPlayer op75 top right textXs"
         >
-          <span>${formatSeconds(this.currentTime || 0)}</span>
+          ${formatSeconds(this.currentTime || 0)}
         </div>
       </div>
-
-      ${this.displayMode === 'lg' && this._rowHeight
+      ${this._rowHeight
         ? html`<div class="flex1">
             <soundws-waveform
               .peaks=${this.peaks}
               .progress=${this.currentPct}
-              .progressColor=${styles.waveProgressColor}
               .waveColor=${styles.waveColor}
               .barWidth=${styles.barWidth}
               .barGap=${styles.barGap}
               .pixelRatio=${styles.devicePixelRatio}
             ></soundws-waveform>
           </div>`
-        : html`<soundws-range
-            label="progress"
-            class="focusBgBrand px1 flex1 flexNoShrink w2"
-            .value=${this.currentPct * 100}
-            @input=${this.#handleSeeking}
-            @change=${this.#debouncedHandleSeek}
-          ></soundws-range>`}
-
+        : ''}
       <slot name="end"></slot>
-      <div class="w2 flexNoShrink stickRight op75 textCenter textXs z99">
-        <span class="p2 bgPlayer">${formatSeconds(this.duration)}</span>
+      <div
+        class="wSpacer flexNoShrink stickRight op75 textCenter textXs z99 bgPlayer"
+      >
+        <span class="p2 ">${formatSeconds(this.duration)}</span>
+      </div>
+    </div>`;
+  }
+
+  #getSmallScreenTpl() {
+    return html`<div class="row dFlex">
+      <soundws-player-button
+        class="w2 flexNoShrink"
+        .disabled=${!this.duration}
+        @click=${this.isPlaying ? this.#onPauseClick : this.#onPlayClick}
+        .title=${this.isPlaying ? 'Pause' : 'Play'}
+        .type=${this.isPlaying ? 'pause' : 'play'}
+      ></soundws-player-button>
+      <soundws-player-button
+        class="w2 flexNoShrink ${this.loop ? '' : 'textMuted'}"
+        @click=${this.#toggleLoop}
+        .title=${this.loop ? 'Disable loop' : 'Enable Loop'}
+        type="loop"
+      ></soundws-player-button>
+      ${this.displayMode !== 'xs'
+        ? html`<div
+            class="flex1 truncate hideXs px4 pr5 textCenter flexNoShrink"
+          >
+            ${this.label}
+          </div>`
+        : ''}
+      <div
+        class="w2 truncate textCenter flexNoShrink z99 bgPlayer op75 top right textXs"
+      >
+        ${formatSeconds(this.currentTime || 0)}
+      </div>
+      <soundws-range
+        label="progress"
+        class="focusBgBrand px1 flex1 flexNoShrink w2"
+        .value=${this.currentPct * 100}
+        @input=${this.#handleSeeking}
+        @change=${this.#debouncedHandleSeek}
+      ></soundws-range>
+      <slot name="end"></slot>
+      <div class="w2 op75 textCenter textXs">
+        <span class="p2">${formatSeconds(this.duration)}</span>
       </div>
     </div>`;
   }

@@ -31,9 +31,7 @@ export class SoundwsWaveform extends LitElement {
 
   static properties = {
     src: { type: String },
-    progress: { type: Number },
     waveColor: { type: String },
-    progressColor: { type: String },
     barGap: { type: Number },
     barWidth: { type: Number },
     scaleY: { type: Number },
@@ -49,7 +47,6 @@ export class SoundwsWaveform extends LitElement {
   constructor() {
     super();
     this.waveColor = 'white';
-    this.progressColor = '#01a4b3';
     this.barGap = 2;
     this.barWidth = 2;
     this.pixelRatio = 2;
@@ -93,20 +90,12 @@ export class SoundwsWaveform extends LitElement {
       if (propName === 'src') {
         if (this.src && this.src !== oldValue) this.#loadPeaks();
       }
-      if (propName === 'progress') {
-        if (this.drawer) this.drawer.progress(this.progress);
-      }
       if (propName === 'scaleY' || propName === 'peaks') {
         this.drawPeaks();
       }
       if (
-        [
-          'waveColor',
-          'progressColor',
-          'barGap',
-          'barWidth',
-          'pixelRatio',
-        ].indexOf(propName) !== -1
+        ['waveColor', 'barGap', 'barWidth', 'pixelRatio'].indexOf(propName) !==
+        -1
       ) {
         // updating any of these properties requires a new drawer
         this.#destroyDrawer();
@@ -176,7 +165,6 @@ export class SoundwsWaveform extends LitElement {
         barGap: this.barGap || 2,
         barWidth: this.barWidth > 0 ? this.barWidth : undefined,
         height: container.clientHeight,
-        progressColor: this.progressColor,
         normalize: false,
         pixelRatio: this.pixelRatio || 2,
         waveColor: this.waveColor,
@@ -198,8 +186,6 @@ export class SoundwsWaveform extends LitElement {
         }
       }, 100);
     });
-
-    this.drawer.progress(this.progress);
   }
 
   /**

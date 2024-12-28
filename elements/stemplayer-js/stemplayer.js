@@ -25,6 +25,7 @@ import { SoundwsStemPlayer } from './src/StemPlayer.js';
 import { SoundwsStemPlayerControls } from './src/StemPlayerControls.js';
 import { SoundwsStemPlayerStem } from './src/StemPlayerStem.js';
 import { RegionArea } from './src/RegionArea.js';
+import { Row } from './src/Row.js';
 
 export { default as config } from './src/config.js';
 
@@ -35,3 +36,4 @@ window.customElements.define(
 );
 window.customElements.define('stemplayer-js-stem', SoundwsStemPlayerStem);
 window.customElements.define('stemplayer-js-region', RegionArea);
+window.customElements.define('stemplayer-js-row', Row);

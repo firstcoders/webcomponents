@@ -74,6 +74,15 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           --soundws-slider-handle-border-right-color: var(
             --stemplayer-js-brand-color
           );
+
+          --stemplayer-js-row-controls-width: calc(
+            var(--stemplayer-js-grid-base, 1.5rem) * 16
+          );
+
+          --stemplayer-js-row-end-width: calc(
+            var(--stemplayer-js-grid-base, 1.5rem) * 2
+          );
+
           display: block;
           font-family: var(
             --stemplayer-js-font-family,
@@ -453,16 +462,21 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
   }
 
   render() {
+    return html`<div>
+      ${this.displayMode === 'lg'
+        ? this.#getLargeScreenTpl()
+        : this.#getSmallScreenTpl()}
+    </div>`;
+  }
+
+  #getLargeScreenTpl() {
     return html`<div class="relative overflowHidden noSelect">
       ${this.isLoading
         ? html`<soundws-mask>
             <soundws-loader></soundws-loader></soundws-icon>
           </soundws-mask>`
         : ''}
-      ${this.displayMode === 'lg' &&
-      this.regions &&
-      this.regionLeft &&
-      this.regionWidth
+      ${this.regions && this.regionLeft && this.regionWidth
         ? html`<stemplayer-js-region
             .totalDuration=${this.audioDuration}
             .offset=${this.regionOffset}
@@ -472,16 +486,27 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
             style="left: ${this.regionLeft}; width: ${this.regionWidth}"
           ></stemplayer-js-region>`
         : ''}
-
       <div class="scrollWrapper">
         <slot name="header" @slotchange=${this.#onSlotChange}></slot>
         <slot class="default" @slotchange=${this.#onSlotChange}></slot>
         <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
       </div>
+      ${!this.noHover ? html`<div class="hover"></div>` : ''}
+    </div>`;
+  }
 
-      ${this.displayMode === 'lg' && !this.noHover
-        ? html`<div class="hover"></div>`
+  #getSmallScreenTpl() {
+    return html`<div class="relative overflowHidden noSelect">
+      ${this.isLoading
+        ? html`<soundws-mask>
+            <soundws-loader></soundws-loader></soundws-icon>
+          </soundws-mask>`
         : ''}
+      <div class="scrollWrapper">
+        <slot name="header" @slotchange=${this.#onSlotChange}></slot>
+        <slot class="default" @slotchange=${this.#onSlotChange}></slot>
+        <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
+      </div>
     </div>`;
   }
 
@@ -614,7 +639,12 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       ...this.stemComponents.map(c => c.peaks).filter(e => !!e),
     );
 
-    const pps = this.stemComponents[0].waveformContainerWidth / peaks.duration;
+    const computedStyle = getComputedStyle(this);
+    console.log(
+      computedStyle.getPropertyValue('--stemplayer-js-row-controls-width'),
+    );
+
+    const pps = this.clientWidth / peaks.duration;
     this.style.setProperty(
       '--soundws-waveform-pixels-per-second',
       pps * this.zoom,
