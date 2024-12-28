@@ -27,7 +27,7 @@ import utilityStyle from './styles/utilities.js';
 /**
  * A component to render a single stem
  */
-export class SoundwsStemPlayerStem extends ResponsiveLitElement {
+export class Row extends ResponsiveLitElement {
   static get styles() {
     return [
       gridStyles,
@@ -41,16 +41,22 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
         :host {
           display: block;
         }
+
+        .wControls {
+          width: var(--stemplayer-js-row-controls-width);
+        }
+
+        .wSpacer {
+          width: var(--stemplayer-js-row-end-width);
+        }
       `,
     ];
   }
 
   render() {
-    return html`<div>
-      ${this.displayMode === 'lg'
-        ? this.#getLargeScreenTpl()
-        : this.#getSmallScreenTpl()}
-    </div>`;
+    return this.displayMode === 'lg'
+      ? this.#getLargeScreenTpl()
+      : this.#getSmallScreenTpl();
   }
 
   /**
@@ -67,7 +73,7 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
   // eslint-disable-next-line class-methods-use-this
   #getLargeScreenTpl() {
     return html`<div class="row dFlex ppsWidth">
-      <div class="dFlex stickLeft bgPlayer z99 flexNoShrink wControls">
+      <div class="wControls flexNoShrink stickLeft bgPlayer z99">
         <slot name="controls"></slot>
       </div>
       <div class="flex1">

@@ -268,23 +268,23 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
   #getLargeScreenTpl() {
     const styles = this.#computedWaveformStyles;
 
-    return html`<div class="row dFlex ppsWidth">
-      <div class="dFlex stickLeft bgPlayer z99 flexNoShrink wControls">
+    return html`<stemplayer-js-row>
+      <div slot="controls" class="dFlex h100">
         <soundws-player-button
-          class="w2 flexNoShrink overflowHidden"
+          class="w2 flexNoShrink"
           @click=${this.solo === 'on' ? this.#onUnSoloClick : this.#onSoloClick}
           .title=${this.solo === 'on' ? 'Disable solo' : 'Solo'}
           .type=${this.solo === 'on' ? 'unsolo' : 'solo'}
         ></soundws-player-button>
         <soundws-player-button
-          class="w2 flexNoShrink pr1 hoverMenuAnchor dFlex flexAlignStretch pr1 flexNoShrink overflowHidden"
+          class="w2"
           @click=${this.#toggleMute}
           .title="${this.muted || this.volume === 0 ? 'Unmute' : 'Mute'}"
           type="${this.muted || this.volume === 0 ? 'unmute' : 'mute'}"
         ></soundws-player-button>
         <soundws-range
+          class="w2"
           label="volume"
-          class="px1 flexNoShrink w2"
           @change=${e => this.#handleVolume(e.detail / 100)}
           .value=${this.volume * 100}
         ></soundws-range>
@@ -294,25 +294,28 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
           ${this.label}
         </div>
       </div>
-      <div class="flex1">
-        ${this._rowHeight
-          ? html`
-              <soundws-waveform
-                .src=${this.waveform}
-                .progress=${this.currentPct}
-                .scaleY=${this.volume}
-                .progressColor=${styles.waveProgressColor}
-                .waveColor=${styles.waveColor}
-                .barWidth=${styles.barWidth}
-                .barGap=${styles.barGap}
-                .pixelRatio=${styles.devicePixelRatio}
-              ></soundws-waveform>
-            `
-          : ''}
+        ${
+          styles
+            ? html`
+                <soundws-waveform
+                  class="h100"
+                  slot="flex"
+                  .src=${this.waveform}
+                  .progress=${this.currentPct}
+                  .scaleY=${this.volume}
+                  .progressColor=${styles.waveProgressColor}
+                  .waveColor=${styles.waveColor}
+                  .barWidth=${styles.barWidth}
+                  .barGap=${styles.barGap}
+                  .pixelRatio=${styles.devicePixelRatio}
+                ></soundws-waveform>
+              `
+            : ''
+        }
       </div>
       <div class="wSpacer flexNoShrink"></div>
       <slot name="end"></slot>
-    </div>`;
+    </stemplayer-js-row>`;
   }
 
   /**
