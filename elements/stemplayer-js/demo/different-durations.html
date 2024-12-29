@@ -61,12 +61,23 @@
       </stemplayer-js-stem>
     </stemplayer-js>
 
+
+
     <script>
       const stemplayer = document.querySelector('stemplayer-js');
       stemplayer.addEventListener('peaks', (peaks) => {
         console.log(peaks)
       })
 
+      // eslint-disable-next-line no-unused-vars
+      function zoom(f) {
+        stemplayer.zoom += f
+        console.log(stemplayer.zoom)
+      }
+
     </script>
+
+    <button onclick="zoom(0.5)">Zoom in</button>
+    <button onclick="zoom(-0.5)">Zoom out</button>
   </body>
 </html>

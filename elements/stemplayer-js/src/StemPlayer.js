@@ -436,6 +436,9 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       if (['duration'].indexOf(propName) !== -1) {
         this.#controller.playDuration = parseFloat(this.duration); // for some reason, the value is sometimes reflected as a string
       }
+      if (propName === 'zoom') {
+        this.#recalculatePixelsPerSecond();
+      }
     });
   }
 
@@ -770,8 +773,16 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
   }
 
   #recalculatePixelsPerSecond() {
-    // we get the pixelsPerSecond from the region element, which contains a container that represents the width of the area that is used to draw waveforms
-    const pps = this.#regionEl.value.pixelsPerSecond * this.zoom;
-    this.style.setProperty('--soundws-waveform-pixels-per-second', pps);
+    requestAnimationFrame(() => {
+      if (this.stemComponents[0].row) {
+        const pps =
+          ((this.clientWidth - this.stemComponents[0].row.nonFlexWidth) /
+            this.#controller.duration) *
+          this.zoom;
+
+        if (pps)
+          this.style.setProperty('--soundws-waveform-pixels-per-second', pps);
+      }
+    });
   }
 }

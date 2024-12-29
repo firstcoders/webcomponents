@@ -137,8 +137,8 @@ export class RegionArea extends ResponsiveLitElement {
       <div class="mouseEventArea z999" ${ref(this.#mouseEventAreaEl)}>
         ${this.offset > 0 && this.duration > 0
           ? html`
-        <div class="absolute h100 z999 mask dashed" style="left: calc(${this.pixelsPerSecond * this.offset}px); width: ${Math.round(
-          this.pixelsPerSecond * this.duration,
+        <div class="absolute h100 z999 mask dashed" style="left: calc(${this.#pixelsPerSecond * this.offset}px); width: ${Math.round(
+          this.#pixelsPerSecond * this.duration,
         )}px;">
           <div
             class="h100 absolute left w2 z99"
@@ -268,7 +268,7 @@ style="right: -50px;"
    * @returns {{left: Number, width: Number, offset: Number, duration: Number }}
    */
   get state() {
-    const { pixelsPerSecond } = this;
+    const pixelsPerSecond = this.#pixelsPerSecond;
     const coord1 = this.#mouseDownX;
     const coord2 = this.lastOffsetX;
     const left = coord1 < coord2 ? coord1 : coord2;
@@ -323,7 +323,7 @@ style="right: -50px;"
   /**
    * How many pixels are used to represent a second in the container that overlays the area where waveforms are drawn
    */
-  get pixelsPerSecond() {
+  get #pixelsPerSecond() {
     return this.#mouseEventAreaEl.value.offsetWidth / this.totalDuration;
   }
 }

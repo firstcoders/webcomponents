@@ -77,11 +77,13 @@ export class Row extends ResponsiveLitElement {
     </div>`;
   }
 
-  get flexWidth() {
+  /**
+   * Returns the combined width of the non fluid (flex) containers
+   */
+  get nonFlexWidth() {
     return (
-      this.clientWidth -
-      this.shadowRoot.querySelector('.wControls').clientWidth -
-      this.shadowRoot.querySelector('.wSpacer').clientWidth
+      this.shadowRoot.querySelector('div.wControls').clientWidth +
+      this.shadowRoot.querySelector('div.wSpacer').clientWidth
     );
   }
 }

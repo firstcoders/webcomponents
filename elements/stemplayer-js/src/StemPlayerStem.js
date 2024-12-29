@@ -418,4 +418,8 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
       waveProgressColor: this.waveProgressColor || styles.progressColor,
     };
   }
+
+  get row() {
+    return this.shadowRoot.querySelector('stemplayer-js-row');
+  }
 }
