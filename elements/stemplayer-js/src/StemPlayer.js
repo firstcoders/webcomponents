@@ -124,6 +124,12 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           max-height: var(--stemplayer-js-max-height, auto);
           overflow: auto;
         }
+
+        .cursor {
+          background-color: rgba(255, 255, 255, 1);
+          margin-left: calc(var(--stemplayer-js-row-controls-width) + 1px);
+          mix-blend-mode: overlay;
+        }
       `,
     ];
   }
@@ -187,6 +193,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       audioDuration: { state: true },
       regionOffset: { state: true },
       regionDuration: { state: true },
+      currentPct: { state: true },
     };
   }
 
@@ -199,11 +206,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
    * @private
    */
   #debouncedMergePeaks;
-
-  /**
-   * @private
-   */
-  #handleKeypress;
 
   /** @private */
   #nLoading = 0;
@@ -318,6 +320,9 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           currentTime: t,
           currentPct: pct,
         });
+
+        // this.currentTime = t;
+        this.currentPct = pct;
       });
     });
 
@@ -333,6 +338,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         currentTime: t,
         currentPct: pct,
       });
+
+      this.currentPct = pct;
     });
 
     controller.on('duration', duration => {
@@ -366,34 +373,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       this.#updateChildren({ isPlaying: false });
     });
 
-    // keypress event
-    this.#handleKeypress = e => {
-      if (e.defaultPrevented) {
-        return; // Should do nothing if the default action has been cancelled
-      }
-
-      const [target] = e.composedPath();
-
-      // control player on spacebar
-      if (e.code.toLowerCase() === 'space') {
-        // ignore form input events
-        if (
-          ['INPUT', 'TEXTAREA', 'BUTTON'].indexOf(
-            target.tagName.toUpperCase(),
-          ) !== -1
-        )
-          return;
-
-        if (this.#controller.state !== 'running') this.play();
-        else this.pause();
-        e.preventDefault();
-      }
-
-      if (e.code.toLowerCase() === 'escape') {
-        target.blur();
-      }
-    };
-
     this.addEventListener('resize', () => {
       this.#recalculatePixelsPerSecond();
     });
@@ -407,7 +386,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     super.connectedCallback();
 
     if (!this.noKeyboardEvents) {
-      window.addEventListener('keydown', this.#handleKeypress);
+      this.keyDownlistener = e => this.#handleKeypress(e);
+      window.addEventListener('keydown', this.keyDownlistener);
     }
   }
 
@@ -416,7 +396,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     this.#controller.pause();
 
     if (!this.noKeyboardEvents) {
-      window.removeEventListener('keydown', this.#handleKeypress);
+      window.removeEventListener('keydown', this.keyDownlistener);
     }
   }
 
@@ -474,7 +454,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
   #getLargeScreenTpl() {
     return html`<div class="relative overflowHidden noSelect">
       <slot name="header" @slotchange=${this.#onSlotChange}></slot>
-      <div class="scrollWrapper">
+      <div class="scrollWrapper relative">
         <stemplayer-js-region
           ${ref(this.#regionEl)}
           .totalDuration=${this.audioDuration}
@@ -491,6 +471,10 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
           <slot class="default" @slotchange=${this.#onSlotChange}></slot>
         </stemplayer-js-region>
+        <div
+          class="absolute w100 h100 top z99 cursor"
+          style="width: ${(this.currentPct || 0) * 100}%"
+        ></div>
       </div>
       <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
     </div>`;
@@ -784,5 +768,33 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           this.style.setProperty('--soundws-waveform-pixels-per-second', pps);
       }
     });
+  }
+
+  // keypress event
+  #handleKeypress(e) {
+    if (e.defaultPrevented) {
+      return; // Should do nothing if the default action has been cancelled
+    }
+
+    const [target] = e.composedPath();
+
+    // control player on spacebar
+    if (e.code.toLowerCase() === 'space') {
+      // ignore form input events
+      if (
+        ['INPUT', 'TEXTAREA', 'BUTTON'].indexOf(
+          target.tagName.toUpperCase(),
+        ) !== -1
+      )
+        return;
+
+      if (this.#controller.state !== 'running') this.play();
+      else this.pause();
+      e.preventDefault();
+    }
+
+    if (e.code.toLowerCase() === 'escape') {
+      target.blur();
+    }
   }
 }
