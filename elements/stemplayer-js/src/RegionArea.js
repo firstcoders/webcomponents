@@ -51,6 +51,8 @@ export class RegionArea extends ResponsiveLitElement {
    */
   #onMouseUpHandler;
 
+  #wheelEventHandler;
+
   static get styles() {
     return [
       gridStyles,
@@ -135,14 +137,15 @@ export class RegionArea extends ResponsiveLitElement {
       el.addEventListener('mousemove', e => this.#onMouseMove(e));
       el.addEventListener('click', e => this.#handleClick(e));
       el.addEventListener('pointermove', e => this.#onHover(e));
-      this.addEventListener('wheel', e => this.#onHover(e));
+      this.#wheelEventHandler = e => this.#onHover(e);
+      this.addEventListener('wheel', this.#wheelEventHandler);
     }, 0);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('mouseup', this.#onMouseUpHandler);
-    this.removeEventListener('wheel');
+    this.removeEventListener('wheel', this.#wheelEventHandler);
   }
 
   render() {
@@ -343,7 +346,9 @@ style="right: -50px;"
    * How many pixels are used to represent a second in the container that overlays the area where waveforms are drawn
    */
   get #pixelsPerSecond() {
-    if (this.#mouseEventAreaEl.value)
-      return this.#mouseEventAreaEl.value.offsetWidth / this.totalDuration;
+    return (
+      (this.#mouseEventAreaEl.value?.offsetWidth || this.clientWidth) /
+      this.totalDuration
+    );
   }
 }
