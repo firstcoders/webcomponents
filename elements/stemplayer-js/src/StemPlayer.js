@@ -46,14 +46,13 @@ import debounce from './lib/debounce.js';
  * @cssprop [--stemplayer-js-background-color=black]
  * @cssprop [--stemplayer-js-row-height=4.5rem]
  * @cssprop [--stemplayer-js-waveform-color]
- * @cssprop [--stemplayer-js-waveform-progress-color]
  * @cssprop [--stemplayer-js-waveform-bar-width]
  * @cssprop [--stemplayer-js-waveform-bar-gap]
  * @cssprop [--stemplayer-js-waveform-pixel-ratio]
  * @cssprop [--stemplayer-js-grid-base=1.5rem]
  * @cssprop [--stemplayer-js-max-height=auto]
- * @cssprop [--stemplayer-hover-mix-blend-mode=overlay]
- * @cssprop [--stemplayer-hover-background-color=rgba(255, 255, 255, 0.5)]
+ * @cssprop [--stemplayer-js-progress-background-color=rgba(255, 255, 255, 1)]
+ * @cssprop [--stemplayer-js-progress-mix-blend-mode=overlay]
  */
 export class SoundwsStemPlayer extends ResponsiveLitElement {
   #regionEl = createRef();
@@ -99,36 +98,9 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           background-color: var(--stemplayer-js-background-color, black);
         }
 
-        .relative:hover .hover {
-          opacity: 1;
-        }
-
-        .hover {
-          position: absolute;
-          left: 0;
-          top: 0;
-          z-index: 100;
-          pointer-events: none;
-          height: 100%;
-          width: 0;
-          mix-blend-mode: var(--stemplayer-hover-mix-blend-mode, overlay);
-          background: var(
-            --stemplayer-hover-background-color,
-            rgba(255, 255, 255, 0.75)
-          );
-          opacity: 0;
-          transition: opacity 0.2s ease;
-        }
-
         .scrollWrapper {
           max-height: var(--stemplayer-js-max-height, auto);
           overflow: auto;
-        }
-
-        .cursor {
-          background-color: rgba(255, 255, 255, 1);
-          margin-left: calc(var(--stemplayer-js-row-controls-width) + 1px);
-          mix-blend-mode: overlay;
         }
       `,
     ];
@@ -164,11 +136,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       zoom: { type: Number },
 
       /**
-       * Disabled the mouseover hover effect
-       */
-      noHover: { type: Boolean, attribute: 'no-hover' },
-
-      /**
        * Enable region selection
        */
       regions: { type: Boolean },
@@ -193,7 +160,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       audioDuration: { state: true },
       regionOffset: { state: true },
       regionDuration: { state: true },
-      currentPct: { state: true },
+      progress: { state: true },
     };
   }
 
@@ -216,7 +183,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     // set default values for props
     this.autoplay = false;
     this.loop = false;
-    this.noHover = false;
     this.noKeyboardEvents = false;
     this.#debouncedMergePeaks = debounce(this.#mergePeaks, 100);
     this.regions = false;
@@ -237,7 +203,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     this.addEventListener('controls:play', this.#onPlay);
     this.addEventListener('controls:pause', this.#onPause);
     this.addEventListener('controls:loop', this.#onToggleLoop);
-    // this.addEventListener('peaks', this.onPeaks);
     this.addEventListener('stem:load:start', this.#onStemLoadingStart);
     this.addEventListener('stem:load:end', this.#onStemLoadingEnd);
     this.addEventListener('stem:solo', this.#onSolo);
@@ -245,7 +210,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     this.addEventListener('stem:load:request', this.#loadStem);
 
     this.addEventListener('waveform:draw', this.#onWaveformDraw);
-    if (!this.noHover) this.addEventListener('pointermove', this.#onHover);
 
     const handleSeek = e => {
       controller.pct = e.detail;
@@ -321,8 +285,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           currentPct: pct,
         });
 
-        // this.currentTime = t;
-        this.currentPct = pct;
+        this.progress = pct;
       });
     });
 
@@ -339,7 +302,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         currentPct: pct,
       });
 
-      this.currentPct = pct;
+      this.progress = pct;
     });
 
     controller.on('duration', duration => {
@@ -460,6 +423,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           .totalDuration=${this.audioDuration}
           .offset=${this.regionOffset}
           .duration=${this.regionDuration}
+          .progress=${this.progress}
           @region:update=${this.#onRegionUpdate}
           @region:change=${this.#onRegionChange}
         >
@@ -471,10 +435,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
           <slot class="default" @slotchange=${this.#onSlotChange}></slot>
         </stemplayer-js-region>
-        <div
-          class="absolute w100 h100 top z99 cursor"
-          style="width: ${(this.currentPct || 0) * 100}%"
-        ></div>
       </div>
       <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
     </div>`;
@@ -580,38 +540,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
    */
   set currentTime(t) {
     this.#controller.currentTime = t;
-  }
-
-  /**
-   *@private
-   */
-  #onHover(e) {
-    // see if are hovering over the correct elements
-    const targetEl = e
-      .composedPath()
-      .find(
-        el =>
-          ['SOUNDWS-WAVEFORM', 'STEMPLAYER-JS-REGION'].indexOf(el.tagName) !==
-          -1,
-      );
-
-    // over element
-    const el = this.shadowRoot.querySelector('.hover');
-
-    if (el) {
-      if (targetEl) {
-        const left = targetEl.offsetLeft;
-
-        let width = e.offsetX - left > 0 ? e.offsetX - left : 0;
-        if (width > targetEl.offsetWidth) width = targetEl.offsetWidth;
-
-        el.style.left = `${left}px`;
-        el.style.width = `${width}px`;
-      } else {
-        el.style.left = 0;
-        el.style.width = 0;
-      }
-    }
   }
 
   /**

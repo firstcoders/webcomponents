@@ -104,6 +104,14 @@ export class RegionArea extends ResponsiveLitElement {
           right: var(--stemplayer-js-row-end-width);
           left: var(--stemplayer-js-row-controls-width);
         }
+
+        .progress {
+          background-color: var(
+            --stemplayer-js-progress-background-color,
+            rgba(255, 255, 255, 1)
+          );
+          mix-blend-mode: var(--stemplayer-js-progress-mix-blend-mode, overlay);
+        }
       `,
     ];
   }
@@ -112,6 +120,7 @@ export class RegionArea extends ResponsiveLitElement {
     totalDuration: { type: Number },
     offset: { type: Number },
     duration: { type: Number },
+    progress: { type: Number },
     cursorPosition: { state: true },
   };
 
@@ -177,6 +186,12 @@ style="right: -50px;"
         </div>
       </div>
       <slot></slot>
+      <div
+        class="mouseEventArea absolute w100 h100 top z99 progress"
+        style="width: ${this.totalDuration *
+        (this.progress || 0) *
+        this.#pixelsPerSecond}px"
+      ></div>
     </div>`;
   }
 
@@ -328,6 +343,7 @@ style="right: -50px;"
    * How many pixels are used to represent a second in the container that overlays the area where waveforms are drawn
    */
   get #pixelsPerSecond() {
-    return this.#mouseEventAreaEl.value.offsetWidth / this.totalDuration;
+    if (this.#mouseEventAreaEl.value)
+      return this.#mouseEventAreaEl.value.offsetWidth / this.totalDuration;
   }
 }
