@@ -380,6 +380,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         this.#controller.playDuration = parseFloat(this.duration); // for some reason, the value is sometimes reflected as a string
       }
       if (propName === 'zoom') {
+        if (this.zoom < 1) this.zoom = 1; // zomming to smaller than 1 is pointless
         this.#recalculatePixelsPerSecond();
       }
     });
