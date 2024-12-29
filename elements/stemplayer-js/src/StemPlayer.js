@@ -473,7 +473,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
   #getLargeScreenTpl() {
     return html`<div class="relative overflowHidden noSelect">
-      <div class="scrollWrapper relative">
+      <slot name="header" @slotchange=${this.#onSlotChange}></slot>
+      <div class="scrollWrapper">
         <stemplayer-js-region
           ${ref(this.#regionEl)}
           .totalDuration=${this.audioDuration}
@@ -488,11 +489,10 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           </soundws-mask>`
             : ''}
 
-          <slot name="header" @slotchange=${this.#onSlotChange}></slot>
           <slot class="default" @slotchange=${this.#onSlotChange}></slot>
-          <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
         </stemplayer-js-region>
       </div>
+      <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
     </div>`;
   }
 

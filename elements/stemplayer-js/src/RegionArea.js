@@ -64,6 +64,7 @@ export class RegionArea extends ResponsiveLitElement {
           display: block;
           width: fit-content;
           min-width: 100%;
+          position: relative;
         }
 
         .mask {
@@ -99,6 +100,7 @@ export class RegionArea extends ResponsiveLitElement {
         .mouseEventArea {
           position: absolute;
           height: 100%;
+          top: 0;
           right: var(--stemplayer-js-row-end-width);
           left: var(--stemplayer-js-row-controls-width);
         }
@@ -124,16 +126,18 @@ export class RegionArea extends ResponsiveLitElement {
       el.addEventListener('mousemove', e => this.#onMouseMove(e));
       el.addEventListener('click', e => this.#handleClick(e));
       el.addEventListener('pointermove', e => this.#onHover(e));
+      this.addEventListener('wheel', e => this.#onHover(e));
     }, 0);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('mouseup', this.#onMouseUpHandler);
+    this.removeEventListener('wheel');
   }
 
   render() {
-    return html`<div class="relative">
+    return html`<div>
       <div class="mouseEventArea z999" ${ref(this.#mouseEventAreaEl)}>
         ${this.offset > 0 && this.duration > 0
           ? html`
