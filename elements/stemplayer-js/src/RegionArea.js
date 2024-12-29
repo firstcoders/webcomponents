@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { css, html } from 'lit';
+import { createRef, ref } from 'lit/directives/ref.js';
 import { ResponsiveLitElement } from './ResponsiveLitElement.js';
 import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
@@ -28,6 +29,8 @@ import formatSeconds from './lib/format-seconds.js';
  * An area that represents the timeline providing functionality to select regions
  */
 export class RegionArea extends ResponsiveLitElement {
+  #mouseEventAreaEl = createRef();
+
   /**
    * A mouse event offsetX coordinate
    */
@@ -93,6 +96,14 @@ export class RegionArea extends ResponsiveLitElement {
           border-style: dashed;
           opacity: 0;
         }
+
+        .mouseEventArea {
+          border: 5px solid yellow;
+          left: var(--stemplayer-js-row-controls-width);
+          position: absolute;
+          height: 100%;
+          right: var(--stemplayer-js-row-end-width);
+        }
       `,
     ];
   }
@@ -109,21 +120,26 @@ export class RegionArea extends ResponsiveLitElement {
 
   constructor() {
     super();
-    this.addEventListener('mousedown', this.#onMouseDown);
-    this.addEventListener('mousemove', this.#onMouseMove);
-    this.addEventListener('click', this.#handleClick);
+
     this.addEventListener('resize', () => {
       this.pixelsPerSecond =
         (this.offsetWidth - this.mouseEventOffset - this.mouseEventEnd) /
         this.totalDuration;
     });
-    this.addEventListener('pointermove', this.#onHover);
   }
 
   connectedCallback() {
     super.connectedCallback();
     this.#onMouseUpHandler = e => this.#onMouseUp(e);
     document.addEventListener('mouseup', this.#onMouseUpHandler); // mouse up _anywhere_ (not just in this element) will also trigger the select-end behaviour
+
+    setTimeout(() => {
+      const el = this.#mouseEventAreaEl.value;
+      el.addEventListener('mousedown', e => this.#onMouseDown(e));
+      el.addEventListener('mousemove', e => this.#onMouseMove(e));
+      el.addEventListener('click', e => this.#handleClick(e));
+      el.addEventListener('pointermove', e => this.#onHover(e));
+    }, 0);
   }
 
   disconnectedCallback() {
@@ -140,10 +156,11 @@ export class RegionArea extends ResponsiveLitElement {
   }
 
   render() {
-    return html`<div>
-      ${this.offset > 0 && this.duration < this.totalDuration
-        ? html`
-        <div class="absolute h100 z999 mask dashed" style="left: ${this.pixelsPerSecond * this.offset + this.mouseEventOffset}px; width: ${Math.round(
+    return html`<div class="relative">
+      <div class="mouseEventArea z999" ${ref(this.#mouseEventAreaEl)}>
+        ${this.offset > 0 && this.duration < this.totalDuration
+          ? html`
+        <div class="absolute h100 z999 mask dashed" style="left: calc(${this.pixelsPerSecond * this.offset}px); width: ${Math.round(
           this.pixelsPerSecond * this.duration,
         )}px;">
           <div
@@ -155,7 +172,6 @@ export class RegionArea extends ResponsiveLitElement {
             </div>
           </div>
           <div class="h100 overflowHidden">
-
           </div>
           <div
             class="h100 absolute right w2 z99 top"
@@ -170,12 +186,13 @@ style="right: -50px;"
               type="deselect"
             ></soundws-player-button>
           </div></div></div>`
-        : ''}
-      <div class="cursor dashed w2 z999 noPointerEvents">
-        <div class="w2 hRow textCenter textXs">
-          <span class="bgPlayer p1 muted"
-            >${formatSeconds(this.cursorPosition)}</span
-          >
+          : ''}
+        <div class="cursor dashed w2 z999 noPointerEvents">
+          <div class="w2 hRow textCenter textXs">
+            <span class="bgPlayer p1 muted"
+              >${formatSeconds(this.cursorPosition)}</span
+            >
+          </div>
         </div>
       </div>
       <slot></slot>
@@ -183,27 +200,31 @@ style="right: -50px;"
   }
 
   #onMouseDown(e) {
-    this.#mouseDownX = e.offsetX;
+    const { offsetX, offsetWidth } = this.resolveOffsets(e);
 
-    if (e.offsetX < this.mouseEventOffset) {
-      this.#mouseDownX = this.mouseEventOffset;
+    this.#mouseDownX = offsetX;
+
+    if (offsetX < 0) {
+      this.#mouseDownX = 0;
     }
 
-    if (e.offsetX > this.offsetWidth - this.mouseEventEnd) {
-      this.#mouseDownX = this.offsetWidth - this.mouseEventEnd;
+    if (offsetX > offsetWidth) {
+      this.#mouseDownX = offsetWidth;
     }
 
     this.#mouseDownTime = new Date();
   }
 
   #onMouseMove(e) {
+    const { offsetX, offsetWidth } = this.resolveOffsets(e);
+
     if (
       this.#mouseDownX !== undefined &&
-      e.offsetX > this.mouseEventOffset &&
-      e.offsetX < this.offsetWidth - this.mouseEventEnd
+      offsetX > 0 &&
+      offsetX < offsetWidth
     ) {
-      this.lastOffsetX = e.offsetX;
-      const distance = Math.abs(e.offsetX - this.#mouseDownX);
+      this.lastOffsetX = offsetX;
+      const distance = Math.abs(offsetX - this.#mouseDownX);
       this.#mouseMoveWidth = distance; // distance > 5 ? distance : undefined;
 
       if (this.#mouseMoveWidth) {
@@ -248,6 +269,7 @@ style="right: -50px;"
   }
 
   #handleClick(e) {
+    const { offsetX, offsetWidth } = this.resolveOffsets(e);
     const clickTime = new Date() - this.#mouseDownTime;
 
     if (clickTime < 150) {
@@ -255,7 +277,7 @@ style="right: -50px;"
         new CustomEvent('region:seek', {
           bubbles: true,
           composed: true,
-          detail: Math.round((e.offsetX / this.clientWidth) * 100) / 100,
+          detail: Math.round((offsetX / offsetWidth) * 100) / 100,
         }),
       );
     }
@@ -274,8 +296,7 @@ style="right: -50px;"
     const coord2 = this.lastOffsetX;
     const left = coord1 < coord2 ? coord1 : coord2;
     const width = this.#mouseMoveWidth;
-    const offset =
-      Math.floor((this.toRelativeX(left) / pixelsPerSecond) * 100) / 100;
+    const offset = Math.floor((left / pixelsPerSecond) * 100) / 100;
     const duration = Math.floor((width / pixelsPerSecond) * 100) / 100;
 
     return { offset, duration };
@@ -284,22 +305,20 @@ style="right: -50px;"
   /**
    *@private
    */
+  // eslint-disable-next-line consistent-return
   #onHover(e) {
+    const { offsetX, offsetWidth } = this.resolveOffsets(e);
     const el = this.shadowRoot.querySelector('.cursor');
 
-    if (!this.xIsInMouseEventArea(e.offsetX)) {
+    if (offsetX < 0 || offsetX > offsetWidth) {
       el.style.left = `-10000px`;
-      return;
+      return undefined;
     }
 
-    el.style.left = `${e.offsetX}px`;
+    el.style.left = `${offsetX}px`;
 
     this.cursorPosition =
-      Math.round(
-        (this.toRelativeX(e.offsetX) / this.#mouseEventAreaWidth) *
-          this.totalDuration *
-          10,
-      ) / 10;
+      Math.round((offsetX / offsetWidth) * this.totalDuration * 10) / 10;
 
     this.dispatchEvent(
       new CustomEvent('region:hover', {
@@ -310,17 +329,17 @@ style="right: -50px;"
     );
   }
 
-  get #mouseEventAreaWidth() {
-    return this.offsetWidth - this.mouseEventOffset - this.mouseEventEnd;
-  }
+  resolveOffsets(e) {
+    let { offsetX } = e;
 
-  xIsInMouseEventArea(offsetX) {
-    if (offsetX < this.mouseEventOffset) return false;
-    if (offsetX > this.offsetWidth - this.mouseEventEnd) return false;
-    return true;
-  }
+    if (e.target !== this.#mouseEventAreaEl.value) {
+      const rect = this.#mouseEventAreaEl.value.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+    }
 
-  toRelativeX(offsetX) {
-    return offsetX - this.mouseEventOffset;
+    return {
+      offsetX,
+      offsetWidth: this.#mouseEventAreaEl.value.offsetWidth,
+    };
   }
 }
