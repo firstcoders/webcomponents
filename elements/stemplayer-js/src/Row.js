@@ -41,14 +41,6 @@ export class Row extends ResponsiveLitElement {
         :host {
           display: block;
         }
-
-        .wControls {
-          width: var(--stemplayer-js-row-controls-width);
-        }
-
-        .wSpacer {
-          width: var(--stemplayer-js-row-end-width);
-        }
       `,
     ];
   }

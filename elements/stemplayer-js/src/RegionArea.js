@@ -97,10 +97,10 @@ export class RegionArea extends ResponsiveLitElement {
         }
 
         .mouseEventArea {
-          left: var(--stemplayer-js-row-controls-width);
           position: absolute;
           height: 100%;
           right: var(--stemplayer-js-row-end-width);
+          left: var(--stemplayer-js-row-controls-width);
         }
       `,
     ];
@@ -110,17 +110,8 @@ export class RegionArea extends ResponsiveLitElement {
     totalDuration: { type: Number },
     offset: { type: Number },
     duration: { type: Number },
-    pixelsPerSecond: { state: true },
     cursorPosition: { state: true },
   };
-
-  constructor() {
-    super();
-
-    this.addEventListener('resize', () => {
-      this.pixelsPerSecond = (this.offsetWidth - 384 - 48) / this.totalDuration;
-    });
-  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -139,14 +130,6 @@ export class RegionArea extends ResponsiveLitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('mouseup', this.#onMouseUpHandler);
-  }
-
-  updated(changedProperties) {
-    changedProperties.forEach((oldValue, propName) => {
-      if (propName === 'totalDuration') {
-        this.pixelsPerSecond = this.offsetWidth / this.totalDuration;
-      }
-    });
   }
 
   render() {
@@ -335,5 +318,12 @@ style="right: -50px;"
       offsetX,
       offsetWidth: this.#mouseEventAreaEl.value.offsetWidth,
     };
+  }
+
+  /**
+   * How many pixels are used to represent a second in the container that overlays the area where waveforms are drawn
+   */
+  get pixelsPerSecond() {
+    return this.#mouseEventAreaEl.value.offsetWidth / this.totalDuration;
   }
 }

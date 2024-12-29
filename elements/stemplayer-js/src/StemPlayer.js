@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 import { html, css } from 'lit';
+import { createRef, ref } from 'lit/directives/ref.js';
 import Controller from '@firstcoders/hls-web-audio/controller.js';
 import Peaks from '@firstcoders/waveform-element/Peaks.js';
 import { ResponsiveLitElement } from './ResponsiveLitElement.js';
@@ -55,6 +56,8 @@ import debounce from './lib/debounce.js';
  * @cssprop [--stemplayer-hover-background-color=rgba(255, 255, 255, 0.5)]
  */
 export class SoundwsStemPlayer extends ResponsiveLitElement {
+  #regionEl = createRef();
+
   static get styles() {
     return [
       utilitiesStyles,
@@ -390,6 +393,10 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         target.blur();
       }
     };
+
+    this.addEventListener('resize', () => {
+      this.#recalculatePixelsPerSecond();
+    });
   }
 
   destroy() {
@@ -465,6 +472,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     return html`<div class="relative overflowHidden noSelect">
       <div class="scrollWrapper relative">
         <stemplayer-js-region
+          ${ref(this.#regionEl)}
           .totalDuration=${this.audioDuration}
           .offset=${this.regionOffset}
           .duration=${this.regionDuration}
@@ -629,20 +637,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       ...this.stemComponents.map(c => c.peaks).filter(e => !!e),
     );
 
-    // const rowEl = this.shadowRoot.querySelector('stemplayer-js-row');
-    // if (rowEl) {
-    //   const pps =
-    //     this.shadowRoot.querySelector('stemplayer-js-row').flexWidth /
-    //     peaks.duration;
-
-    const pps = (this.clientWidth - 384 - 48) / this.#controller.duration;
-
-    this.style.setProperty(
-      '--soundws-waveform-pixels-per-second',
-      pps * this.zoom,
-    );
-    // }
-
     // pass the combined peaks to the controls component
     this.slottedElements
       .filter(el => el instanceof ControlComponent)
@@ -773,5 +767,11 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     const { offset, duration } = e.detail;
     this.regionOffset = offset;
     this.regionDuration = duration;
+  }
+
+  #recalculatePixelsPerSecond() {
+    // we get the pixelsPerSecond from the region element, which contains a container that represents the width of the area that is used to draw waveforms
+    const pps = this.#regionEl.value.pixelsPerSecond * this.zoom;
+    this.style.setProperty('--soundws-waveform-pixels-per-second', pps);
   }
 }
