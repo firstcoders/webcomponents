@@ -153,9 +153,9 @@ export class RegionArea extends ResponsiveLitElement {
       <div class="mouseEventArea z999" ${ref(this.#mouseEventAreaEl)}>
         ${this.offset > 0 && this.duration > 0
           ? html`
-        <div class="absolute h100 z999 mask dashed" style="left: calc(${this.#pixelsPerSecond * this.offset}px); width: ${Math.round(
-          this.#pixelsPerSecond * this.duration,
-        )}px;">
+        <div class="absolute h100 z999 mask dashed" style="left: calc(var(--soundws-waveform-pixels-per-second) * ${this.offset}px); width: calc(var(--soundws-waveform-pixels-per-second) * ${
+          this.duration
+        } * 1px);">
           <div
             class="h100 absolute left w2 z99"
             style="left: -50px;"
@@ -191,9 +191,9 @@ style="right: -50px;"
       <slot></slot>
       <div
         class="mouseEventArea absolute w100 h100 top z99 progress"
-        style="width: ${this.totalDuration *
-        (this.progress || 0) *
-        this.#pixelsPerSecond}px"
+        style="width: calc(${this.totalDuration *
+        (this.progress ||
+          0)} * var(--soundws-waveform-pixels-per-second) * 1px)"
       ></div>
     </div>`;
   }
@@ -346,9 +346,9 @@ style="right: -50px;"
    * How many pixels are used to represent a second in the container that overlays the area where waveforms are drawn
    */
   get #pixelsPerSecond() {
-    return (
-      (this.#mouseEventAreaEl.value?.offsetWidth || this.clientWidth) /
-      this.totalDuration
-    );
+    if (this.#mouseEventAreaEl.value)
+      return this.#mouseEventAreaEl.value.offsetWidth / this.totalDuration;
+
+    return undefined;
   }
 }
