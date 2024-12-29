@@ -64,7 +64,6 @@ export class RegionArea extends ResponsiveLitElement {
           display: block;
           width: fit-content;
           min-width: 100%;
-          border: 1px solid red;
         }
 
         .mask {
@@ -98,7 +97,6 @@ export class RegionArea extends ResponsiveLitElement {
         }
 
         .mouseEventArea {
-          border: 5px solid yellow;
           left: var(--stemplayer-js-row-controls-width);
           position: absolute;
           height: 100%;
@@ -114,17 +112,13 @@ export class RegionArea extends ResponsiveLitElement {
     duration: { type: Number },
     pixelsPerSecond: { state: true },
     cursorPosition: { state: true },
-    mouseEventOffset: { type: Number },
-    mouseEventEnd: { type: Number },
   };
 
   constructor() {
     super();
 
     this.addEventListener('resize', () => {
-      this.pixelsPerSecond =
-        (this.offsetWidth - this.mouseEventOffset - this.mouseEventEnd) /
-        this.totalDuration;
+      this.pixelsPerSecond = (this.offsetWidth - 384 - 48) / this.totalDuration;
     });
   }
 
@@ -158,7 +152,7 @@ export class RegionArea extends ResponsiveLitElement {
   render() {
     return html`<div class="relative">
       <div class="mouseEventArea z999" ${ref(this.#mouseEventAreaEl)}>
-        ${this.offset > 0 && this.duration < this.totalDuration
+        ${this.offset > 0 && this.duration > 0
           ? html`
         <div class="absolute h100 z999 mask dashed" style="left: calc(${this.pixelsPerSecond * this.offset}px); width: ${Math.round(
           this.pixelsPerSecond * this.duration,

@@ -470,8 +470,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           .duration=${this.regionDuration}
           @region:update=${this.#onRegionUpdate}
           @region:change=${this.#onRegionChange}
-          mouseEventOffset="384"
-          mouseEventEnd="48"
         >
           ${this.isLoading
             ? html`<soundws-mask>
@@ -482,8 +480,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           <slot name="header" @slotchange=${this.#onSlotChange}></slot>
           <slot class="default" @slotchange=${this.#onSlotChange}></slot>
           <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
-          ></stemplayer-js-region
-        >
+        </stemplayer-js-region>
       </div>
     </div>`;
   }
