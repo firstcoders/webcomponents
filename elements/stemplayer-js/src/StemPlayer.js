@@ -218,22 +218,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     this.addEventListener('region:seek', e => handleSeek(e));
     this.addEventListener('controls:seek', e => handleSeek(e));
 
-    // when scrolling in the regions overlay, which is absolutely positioned, this does not trigger scrolling of the scrollWrapper
-    // this is to "forward" any scroll events
-    // const el = this.shadowRoot.querySelector('.scrollWrapper');
-
-    // this.addEventListener('wheel', e => {
-    //   // we prevent default when scolling the scrollWrapper, however when we have scrolled the full length, we want the scroll to apply to the document (like usual)
-    //   // we store the before, and compare it to the after scrollTop - if it's the same, we infer that the full length has been scrolled
-    //   const { scrollTop: before } = el;
-
-    //   el.scrollTop += e.deltaY;
-
-    //   if (before !== el.scrollTop) {
-    //     e.preventDefault();
-    //   }
-    // });
-
     this.addEventListener('controls:seeking', () => {
       if (controller.state === 'running') {
         controller.pause();
@@ -421,6 +405,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           .totalDuration=${this.audioDuration}
           .offset=${this.regionOffset}
           .duration=${this.regionDuration}
+          .regions=${this.regions}
           @region:update=${this.#onRegionUpdate}
           @region:change=${this.#onRegionChange}
         >

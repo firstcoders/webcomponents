@@ -119,13 +119,10 @@ export class RegionArea extends ResponsiveLitElement {
           );
         }
 
-        .left-region {
+        .regionArea {
           left: calc(
             var(--soundws-waveform-pixels-per-second) * var(--offset) * 1px
           );
-        }
-
-        .region-width {
           width: calc(
             var(--soundws-waveform-pixels-per-second) * var(--duration) * 1px
           );
@@ -138,6 +135,7 @@ export class RegionArea extends ResponsiveLitElement {
     totalDuration: { type: Number },
     offset: { type: Number },
     duration: { type: Number },
+    regions: { type: Boolean },
     cursorPosition: { state: true },
   };
 
@@ -179,7 +177,7 @@ export class RegionArea extends ResponsiveLitElement {
       <div class="eventArea z999" ${ref(this.#eventAreaEl)}>
         ${this.offset > 0 && this.duration > 0
           ? html`
-        <div class="absolute h100 z999 mask dashed left-region region-width">
+        <div class="absolute h100 z999 mask dashed regionArea">
           <div
             class="h100 absolute left w2 z99"
             style="left: -50px;"
@@ -234,6 +232,8 @@ style="right: -50px;"
   }
 
   #onMouseMove(e) {
+    if (!this.regions) return;
+
     const { offsetX, offsetWidth } = this.resolveOffsets(e);
 
     if (
