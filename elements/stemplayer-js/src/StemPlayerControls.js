@@ -96,6 +96,19 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
        * Whether the loop is toggled on or off
        */
       loop: { type: Boolean },
+
+      /**
+       * The controls that are enables
+       */
+      controls: {
+        type: String,
+        converter: {
+          fromAttribute: value => {
+            if (typeof value === 'string') return value.split(' ');
+            return value;
+          },
+        },
+      },
     };
   }
 
@@ -112,6 +125,8 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   constructor() {
     super();
     this.#debouncedHandleSeek = debounce(this.#handleSeek, 100);
+
+    this.controls = ['loop', 'label'];
   }
 
   firstUpdated() {
@@ -132,8 +147,6 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   #getLargeScreenTpl() {
     const styles = this.#computedWaveformStyles;
 
-    console.log({ styles });
-
     return html`<stemplayer-js-row>
       <div slot="controls" class="dFlex h100">
         <soundws-player-button
@@ -143,14 +156,26 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
           .title=${this.isPlaying ? 'Pause' : 'Play'}
           .type=${this.isPlaying ? 'pause' : 'play'}
         ></soundws-player-button>
-        <soundws-player-button
-          class="w2 flexNoShrink ${this.loop ? '' : 'textMuted'}"
-          @click=${this.#toggleLoop}
-          .title=${this.loop ? 'Disable loop' : 'Enable Loop'}
-          type="loop"
-        ></soundws-player-button>
-        <div class="flex1 truncate hideXs px4 pr5 textCenter flexNoShrink">
-          ${this.label}
+        ${
+          this.isEnabled('loop')
+            ? html`<soundws-player-button
+                class="w2 flexNoShrink ${this.loop ? '' : 'textMuted'}"
+                @click=${this.#toggleLoop}
+                .title=${this.loop ? 'Disable loop' : 'Enable Loop'}
+                type="loop"
+              ></soundws-player-button>`
+            : ''
+        }
+        <div class="flex1">
+        ${
+          this.isEnabled('label')
+            ? html`<div
+                class="w100 truncate hideXs px4 pr5 textCenter flexNoShrink"
+              >
+                ${this.label}
+              </div>`
+            : html``
+        }
         </div>
         <div
           class="w2 textCenter flexNoShrink z99 bgPlayer op75 top right textXs"
@@ -159,7 +184,7 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
         </div>
       </div>
       ${
-        styles && this.displayMode === 'lg'
+        this.isEnabled('waveform') && styles && this.displayMode === 'lg'
           ? html`
               <soundws-waveform
                 slot="flex"
@@ -176,7 +201,6 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
           : html`<soundws-range
               label="progress"
               slot="flex"
-              class="focusBgBrand px1 flex1"
               .value=${this.currentPct * 100}
               @input=${this.#handleSeeking}
               @change=${this.#debouncedHandleSeek}
@@ -287,5 +311,9 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   #toggleLoop(e) {
     this.dispatchEvent(new CustomEvent('controls:loop', { bubbles: true }));
     e.target.blur();
+  }
+
+  isEnabled(value) {
+    return this.controls.indexOf(value) !== -1;
   }
 }
