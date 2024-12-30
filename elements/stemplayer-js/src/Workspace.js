@@ -99,7 +99,7 @@ export class Workspace extends ResponsiveLitElement {
           opacity: 0;
         }
 
-        .eventArea {
+        .horizon {
           position: absolute;
           height: 100%;
           top: 0;
@@ -174,7 +174,7 @@ export class Workspace extends ResponsiveLitElement {
 
   render() {
     return html`<div>
-      <div class="eventArea z999" ${ref(this.#eventAreaEl)}>
+      <div class="horizon z999" ${ref(this.#eventAreaEl)}>
         ${this.offset > 0 && this.duration > 0
           ? html`
         <div class="absolute h100 z999 mask dashed regionArea">
@@ -211,7 +211,7 @@ style="right: -50px;"
         </div>
       </div>
       <slot></slot>
-      <div class="eventArea absolute w100 h100 top z99 progress"></div>
+      <div class="horizon z99 progress"></div>
     </div>`;
   }
 
