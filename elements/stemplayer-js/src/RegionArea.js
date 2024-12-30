@@ -29,7 +29,7 @@ import formatSeconds from './lib/format-seconds.js';
  * An area that represents the timeline providing functionality to select regions
  */
 export class RegionArea extends ResponsiveLitElement {
-  #mouseEventAreaEl = createRef();
+  #eventAreaEl = createRef();
 
   /**
    * A mouse event offsetX coordinate
@@ -99,12 +99,12 @@ export class RegionArea extends ResponsiveLitElement {
           opacity: 0;
         }
 
-        .mouseEventArea {
+        .eventArea {
           position: absolute;
           height: 100%;
           top: 0;
-          right: var(--stemplayer-js-row-end-width);
           left: var(--stemplayer-js-row-controls-width);
+          right: var(--stemplayer-js-row-end-width);
         }
 
         .progress {
@@ -135,7 +135,7 @@ export class RegionArea extends ResponsiveLitElement {
     document.addEventListener('mouseup', this.#onMouseUpHandler); // mouse up _anywhere_ (not just in this element) will also trigger the select-end behaviour
 
     setTimeout(() => {
-      const el = this.#mouseEventAreaEl.value;
+      const el = this.#eventAreaEl.value;
       el.addEventListener('mousedown', e => this.#onMouseDown(e));
       el.addEventListener('mousemove', e => this.#onMouseMove(e));
       el.addEventListener('click', e => this.#handleClick(e));
@@ -153,7 +153,7 @@ export class RegionArea extends ResponsiveLitElement {
 
   render() {
     return html`<div>
-      <div class="mouseEventArea z999" ${ref(this.#mouseEventAreaEl)}>
+      <div class="eventArea z999" ${ref(this.#eventAreaEl)}>
         ${this.offset > 0 && this.duration > 0
           ? html`
         <div class="absolute h100 z999 mask dashed" style="left: calc(var(--soundws-waveform-pixels-per-second) * ${this.offset}px); width: calc(var(--soundws-waveform-pixels-per-second) * ${
@@ -192,7 +192,7 @@ style="right: -50px;"
         </div>
       </div>
       <slot></slot>
-      <div class="mouseEventArea absolute w100 h100 top z99 progress"></div>
+      <div class="eventArea absolute w100 h100 top z99 progress"></div>
     </div>`;
   }
 
@@ -329,14 +329,14 @@ style="right: -50px;"
   resolveOffsets(e) {
     let { offsetX } = e;
 
-    if (e.target !== this.#mouseEventAreaEl.value) {
-      const rect = this.#mouseEventAreaEl.value.getBoundingClientRect();
+    if (e.target !== this.#eventAreaEl.value) {
+      const rect = this.#eventAreaEl.value.getBoundingClientRect();
       offsetX = e.clientX - rect.left;
     }
 
     return {
       offsetX,
-      offsetWidth: this.#mouseEventAreaEl.value.offsetWidth,
+      offsetWidth: this.#eventAreaEl.value.offsetWidth,
     };
   }
 
@@ -344,8 +344,8 @@ style="right: -50px;"
    * How many pixels are used to represent a second in the container that overlays the area where waveforms are drawn
    */
   get #pixelsPerSecond() {
-    if (this.#mouseEventAreaEl.value)
-      return this.#mouseEventAreaEl.value.offsetWidth / this.totalDuration;
+    if (this.#eventAreaEl.value)
+      return this.#eventAreaEl.value.offsetWidth / this.totalDuration;
 
     return undefined;
   }
