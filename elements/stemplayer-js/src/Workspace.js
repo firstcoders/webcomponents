@@ -70,7 +70,7 @@ export class Workspace extends ResponsiveLitElement {
         }
 
         .mask {
-          box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.75);
+          box-shadow: 0 0 0 50000px rgba(0, 0, 0, 0.75);
         }
 
         .dashed {
