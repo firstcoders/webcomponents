@@ -160,7 +160,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
       audioDuration: { state: true },
       regionOffset: { state: true },
       regionDuration: { state: true },
-      progress: { state: true },
     };
   }
 
@@ -285,7 +284,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           currentPct: pct,
         });
 
-        this.progress = pct;
+        this.style.setProperty('--stemplayer-progress', t);
       });
     });
 
@@ -302,7 +301,7 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
         currentPct: pct,
       });
 
-      this.progress = pct;
+      this.style.setProperty('--stemplayer-progress', t);
     });
 
     controller.on('duration', duration => {
@@ -424,7 +423,6 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           .totalDuration=${this.audioDuration}
           .offset=${this.regionOffset}
           .duration=${this.regionDuration}
-          .progress=${this.progress}
           @region:update=${this.#onRegionUpdate}
           @region:change=${this.#onRegionChange}
         >

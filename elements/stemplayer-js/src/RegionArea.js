@@ -113,6 +113,10 @@ export class RegionArea extends ResponsiveLitElement {
             rgba(255, 255, 255, 1)
           );
           mix-blend-mode: var(--stemplayer-js-progress-mix-blend-mode, overlay);
+          width: calc(
+            (1px * var(--stemplayer-progress, 0)) *
+              var(--soundws-waveform-pixels-per-second)
+          );
         }
       `,
     ];
@@ -122,7 +126,6 @@ export class RegionArea extends ResponsiveLitElement {
     totalDuration: { type: Number },
     offset: { type: Number },
     duration: { type: Number },
-    progress: { type: Number },
     cursorPosition: { state: true },
   };
 
@@ -189,12 +192,7 @@ style="right: -50px;"
         </div>
       </div>
       <slot></slot>
-      <div
-        class="mouseEventArea absolute w100 h100 top z99 progress"
-        style="width: calc(${this.totalDuration *
-        (this.progress ||
-          0)} * var(--soundws-waveform-pixels-per-second) * 1px)"
-      ></div>
+      <div class="mouseEventArea absolute w100 h100 top z99 progress"></div>
     </div>`;
   }
 
