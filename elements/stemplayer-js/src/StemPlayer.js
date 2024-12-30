@@ -311,17 +311,15 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
 
       this.audioDuration = duration;
 
-      // this.style.setProperty('--stemplayer-duration', duration);
+      this.style.setProperty('--stemplayer-duration', duration);
     });
 
     controller.on('offset', () => {
       this.regionOffset = controller.offset;
-      // this.offset = controller.offset;
     });
 
     controller.on('playDuration', () => {
       this.regionDuration = controller.playDuration;
-      // this.duration = controller.playDuration;
     });
 
     controller.on('start', () => {

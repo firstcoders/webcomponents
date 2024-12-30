@@ -118,6 +118,18 @@ export class RegionArea extends ResponsiveLitElement {
               var(--soundws-waveform-pixels-per-second)
           );
         }
+
+        .left-region {
+          left: calc(
+            var(--soundws-waveform-pixels-per-second) * var(--offset) * 1px
+          );
+        }
+
+        .region-width {
+          width: calc(
+            var(--soundws-waveform-pixels-per-second) * var(--duration) * 1px
+          );
+        }
       `,
     ];
   }
@@ -151,14 +163,23 @@ export class RegionArea extends ResponsiveLitElement {
     this.removeEventListener('wheel', this.#wheelEventHandler);
   }
 
+  updated(changedProperties) {
+    changedProperties.forEach((oldValue, propName) => {
+      if (propName === 'offset') {
+        this.style.setProperty('--offset', this.offset);
+      }
+      if (propName === 'duration') {
+        this.style.setProperty('--duration', this.duration);
+      }
+    });
+  }
+
   render() {
     return html`<div>
       <div class="eventArea z999" ${ref(this.#eventAreaEl)}>
         ${this.offset > 0 && this.duration > 0
           ? html`
-        <div class="absolute h100 z999 mask dashed" style="left: calc(var(--soundws-waveform-pixels-per-second) * ${this.offset}px); width: calc(var(--soundws-waveform-pixels-per-second) * ${
-          this.duration
-        } * 1px);">
+        <div class="absolute h100 z999 mask dashed left-region region-width">
           <div
             class="h100 absolute left w2 z99"
             style="left: -50px;"
