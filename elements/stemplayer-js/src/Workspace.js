@@ -28,7 +28,7 @@ import formatSeconds from './lib/format-seconds.js';
 /**
  * An area that represents the timeline providing functionality to select regions
  */
-export class RegionArea extends ResponsiveLitElement {
+export class Workspace extends ResponsiveLitElement {
   #eventAreaEl = createRef();
 
   /**

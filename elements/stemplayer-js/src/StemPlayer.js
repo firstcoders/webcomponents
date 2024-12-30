@@ -55,7 +55,7 @@ import debounce from './lib/debounce.js';
  * @cssprop [--stemplayer-js-progress-mix-blend-mode=overlay]
  */
 export class SoundwsStemPlayer extends ResponsiveLitElement {
-  #regionEl = createRef();
+  #workspace = createRef();
 
   static get styles() {
     return [
@@ -400,8 +400,8 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
     return html`<div class="relative overflowHidden noSelect">
       <slot name="header" @slotchange=${this.#onSlotChange}></slot>
       <div class="scrollWrapper relative">
-        <stemplayer-js-region
-          ${ref(this.#regionEl)}
+        <stemplayer-js-workspace
+          ${ref(this.#workspace)}
           .totalDuration=${this.audioDuration}
           .offset=${this.regionOffset}
           .duration=${this.regionDuration}
@@ -409,16 +409,15 @@ export class SoundwsStemPlayer extends ResponsiveLitElement {
           @region:update=${this.#onRegionUpdate}
           @region:change=${this.#onRegionChange}
         >
-          ${this.isLoading
-            ? html`<soundws-mask>
-            <soundws-loader></soundws-loader></soundws-icon>
-          </soundws-mask>`
-            : ''}
-
           <slot class="default" @slotchange=${this.#onSlotChange}></slot>
-        </stemplayer-js-region>
+        </stemplayer-js-workspace>
       </div>
       <slot name="footer" @slotchange=${this.#onSlotChange}></slot>
+      ${this.isLoading
+        ? html`<soundws-mask>
+            <soundws-loader></soundws-loader></soundws-icon>
+          </soundws-mask>`
+        : ''}
     </div>`;
   }
 
