@@ -125,7 +125,6 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   constructor() {
     super();
     this.#debouncedHandleSeek = debounce(this.#handleSeek, 100);
-
     this.controls = ['loop', 'label'];
   }
 
@@ -281,11 +280,8 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
 
     return {
       ...styles,
-      waveColor: this.waveColor || styles.controlsWaveColor || styles.waveColor,
-      waveProgressColor:
-        this.waveProgressColor ||
-        styles.controlsProgressColor ||
-        styles.progressColor,
+      waveColor: styles.controlsWaveColor || styles.waveColor,
+      waveProgressColor: styles.controlsProgressColor || styles.progressColor,
     };
   }
 
