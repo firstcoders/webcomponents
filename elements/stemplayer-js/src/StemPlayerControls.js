@@ -24,6 +24,8 @@ import typographyStyles from './styles/typography.js';
 import bgStyles from './styles/backgrounds.js';
 import utilityStyle from './styles/utilities.js';
 import formatSeconds from './lib/format-seconds.js';
+import { defaults } from './config.js';
+import { computeWaveformStyles } from './lib/compute-styles.js';
 import debounce from './lib/debounce.js';
 
 /**
@@ -76,6 +78,11 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
       currentTime: { type: Number },
 
       /**
+       * The peaks data that are to be used for displaying the waveform
+       */
+      peaks: { type: Object },
+
+      /**
        * The percentage of the current time
        */
       currentPct: { type: Number },
@@ -89,11 +96,6 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
        * Whether the loop is toggled on or off
        */
       loop: { type: Boolean },
-
-      /**
-       * Used to determine whether the DOM has been initialised
-       */
-      _rowHeight: { state: true },
     };
   }
 
@@ -102,9 +104,21 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
    */
   #debouncedHandleSeek;
 
+  /**
+   * @private
+   */
+  #computedWaveformStyles;
+
   constructor() {
     super();
     this.#debouncedHandleSeek = debounce(this.#handleSeek, 100);
+  }
+
+  firstUpdated() {
+    this.#computedWaveformStyles = this.#computeWaveformStyles();
+
+    // get the _rowHeight so we know the height for the waveform
+    this._rowHeight = this.shadowRoot.firstElementChild.clientHeight;
   }
 
   render() {
@@ -116,6 +130,10 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   }
 
   #getLargeScreenTpl() {
+    const styles = this.#computedWaveformStyles;
+
+    console.log({ styles });
+
     return html`<stemplayer-js-row>
       <div slot="controls" class="dFlex h100">
         <soundws-player-button
@@ -140,13 +158,30 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
           ${formatSeconds(this.currentTime || 0)}
         </div>
       </div>
-      <soundws-range
-        slot="flex"
-        label="progress"
-        .value=${this.currentPct * 100}
-        @input=${this.#handleSeeking}
-        @change=${this.#debouncedHandleSeek}
-      ></soundws-range>
+      ${
+        styles && this.displayMode === 'lg'
+          ? html`
+              <soundws-waveform
+                slot="flex"
+                .peaks=${this.peaks}
+                .duration=${this.duration}
+                .progress=${this.currentPct}
+                .progressColor=${styles.waveProgressColor}
+                .waveColor=${styles.waveColor}
+                .barWidth=${styles.barWidth}
+                .barGap=${styles.barGap}
+                .pixelRatio=${styles.devicePixelRatio}
+              ></soundws-waveform>
+            `
+          : html`<soundws-range
+              label="progress"
+              slot="flex"
+              class="focusBgBrand px1 flex1"
+              .value=${this.currentPct * 100}
+              @input=${this.#handleSeeking}
+              @change=${this.#debouncedHandleSeek}
+            ></soundws-range>`
+      }
       </div>
       <div
         slot="end"
@@ -210,6 +245,24 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
    */
   #onPauseClick() {
     this.dispatchEvent(new Event('controls:pause', { bubbles: true }));
+  }
+
+  /**
+   * Calculates the styles for rendering the waveform
+   *
+   * @private
+   */
+  #computeWaveformStyles() {
+    const styles = computeWaveformStyles(this, defaults.waveform);
+
+    return {
+      ...styles,
+      waveColor: this.waveColor || styles.controlsWaveColor || styles.waveColor,
+      waveProgressColor:
+        this.waveProgressColor ||
+        styles.controlsProgressColor ||
+        styles.progressColor,
+    };
   }
 
   /**
