@@ -207,21 +207,18 @@ export class SoundwsStemPlayerStem extends WaveformHostMixin(
    */
   #getSmallScreenTpl() {
     return html`<stemplayer-js-row>
-      <div class="w2 flexNoShrink">
-        <soundws-player-button
-          @click=${this.solo === 'on' ? this.#onUnSoloClick : this.#onSoloClick}
-          .title=${this.solo === 'on' ? 'Disable solo' : 'Solo'}
-          .type=${this.solo === 'on' ? 'unsolo' : 'solo'}
-          class=${this.solo === 'on' ? 'bgBrand' : ''}
-        ></soundws-player-button>
-      </div>
-      <div class="w2 flexNoShrink">
-        <soundws-player-button
-          @click=${this.#toggleMute}
-          .title="${this.muted || this.volume === 0 ? 'Unmute' : 'Mute'}"
-          .type="${this.muted || this.volume === 0 ? 'unmute' : 'mute'}"
-        ></soundws-player-button>
-      </div>
+      <soundws-player-button
+        @click=${this.solo === 'on' ? this.#onUnSoloClick : this.#onSoloClick}
+        .title=${this.solo === 'on' ? 'Disable solo' : 'Solo'}
+        .type=${this.solo === 'on' ? 'unsolo' : 'solo'}
+        class="w2 flexNoShrink ${this.solo === 'on' ? 'bgBrand' : ''}"
+      ></soundws-player-button>
+      <soundws-player-button
+        class="w2 flexNoShrink"
+        @click=${this.#toggleMute}
+        .title="${this.muted || this.volume === 0 ? 'Unmute' : 'Mute'}"
+        .type="${this.muted || this.volume === 0 ? 'unmute' : 'mute'}"
+      ></soundws-player-button>
       <soundws-slider
         .value=${this.volume * 100}
         label="volume"
