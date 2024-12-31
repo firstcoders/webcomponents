@@ -17,6 +17,7 @@
 import { html, css } from 'lit';
 import HLS from '@firstcoders/hls-web-audio/hls.js';
 import { ResponsiveLitElement } from './ResponsiveLitElement.js';
+import { WaveformHostMixin } from './mixins/WaveformHostMixin.js';
 import gridStyles from './styles/grid.js';
 import rowStyles from './styles/row.js';
 import flexStyles from './styles/flex.js';
@@ -24,13 +25,14 @@ import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
 import bgStyles from './styles/backgrounds.js';
 import utilityStyle from './styles/utilities.js';
-import { defaults, fetchOptions } from './config.js';
-import { computeWaveformStyles } from './lib/compute-styles.js';
+import { fetchOptions } from './config.js';
 
 /**
  * A component to render a single stem
  */
-export class SoundwsStemPlayerStem extends ResponsiveLitElement {
+export class SoundwsStemPlayerStem extends WaveformHostMixin(
+  ResponsiveLitElement,
+) {
   static get styles() {
     return [
       gridStyles,
@@ -54,8 +56,6 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
 
   static get properties() {
     return {
-      ...ResponsiveLitElement.properties,
-
       /**
        * The label to display
        */
@@ -108,12 +108,6 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
   #volume;
 
   /**
-   * @type {Object}
-   * @private
-   */
-  #computedWaveformStyles;
-
-  /**
    * @type {HLS}
    * @private
    */
@@ -126,8 +120,6 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
   }
 
   firstUpdated() {
-    this.#computedWaveformStyles = this.#computeWaveformStyles();
-
     // get the _rowHeight so we know the height for the waveform
     this._rowHeight = this.shadowRoot.firstElementChild.clientHeight;
   }
@@ -266,7 +258,7 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
    * @private
    */
   #getLargeScreenTpl() {
-    const styles = this.#computedWaveformStyles;
+    const styles = this.getComputedWaveformStyles();
 
     return html`<stemplayer-js-row>
       <div slot="controls" class="dFlex h100">
@@ -402,21 +394,6 @@ export class SoundwsStemPlayerStem extends ResponsiveLitElement {
    */
   get waveformComponent() {
     return this.shadowRoot?.querySelector('soundws-waveform');
-  }
-
-  /**
-   * Calculates the styles for rendering the waveform
-   *
-   * @private
-   */
-  #computeWaveformStyles() {
-    const styles = computeWaveformStyles(this, defaults.waveform);
-
-    return {
-      ...styles,
-      waveColor: this.waveColor || styles.waveColor,
-      waveProgressColor: this.waveProgressColor || styles.progressColor,
-    };
   }
 
   get row() {

@@ -16,6 +16,7 @@
  */
 import { html, css } from 'lit';
 import { ResponsiveLitElement } from './ResponsiveLitElement.js';
+import { WaveformHostMixin } from './mixins/WaveformHostMixin.js';
 import gridStyles from './styles/grid.js';
 import rowStyles from './styles/row.js';
 import flexStyles from './styles/flex.js';
@@ -24,8 +25,6 @@ import typographyStyles from './styles/typography.js';
 import bgStyles from './styles/backgrounds.js';
 import utilityStyle from './styles/utilities.js';
 import formatSeconds from './lib/format-seconds.js';
-import { defaults } from './config.js';
-import { computeWaveformStyles } from './lib/compute-styles.js';
 import debounce from './lib/debounce.js';
 
 /**
@@ -34,7 +33,9 @@ import debounce from './lib/debounce.js';
  * @cssprop [--stemplayer-js-controls-color]
  * @cssprop [--stemplayer-js-controls-background-color]
  */
-export class SoundwsStemPlayerControls extends ResponsiveLitElement {
+export class SoundwsStemPlayerControls extends WaveformHostMixin(
+  ResponsiveLitElement,
+) {
   static get styles() {
     return [
       gridStyles,
@@ -60,8 +61,6 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
 
   static get properties() {
     return {
-      ...ResponsiveLitElement.properties,
-
       /**
        * The label to display
        */
@@ -117,11 +116,6 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
    */
   #debouncedHandleSeek;
 
-  /**
-   * @private
-   */
-  #computedWaveformStyles;
-
   constructor() {
     super();
     this.#debouncedHandleSeek = debounce(this.#handleSeek, 100);
@@ -129,8 +123,6 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   }
 
   firstUpdated() {
-    this.#computedWaveformStyles = this.#computeWaveformStyles();
-
     // get the _rowHeight so we know the height for the waveform
     this._rowHeight = this.shadowRoot.firstElementChild.clientHeight;
   }
@@ -144,7 +136,7 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
   }
 
   #getLargeScreenTpl() {
-    const styles = this.#computedWaveformStyles;
+    const styles = this.getComputedWaveformStyles();
 
     return html`<stemplayer-js-row>
       <div slot="controls" class="dFlex h100">
@@ -268,21 +260,6 @@ export class SoundwsStemPlayerControls extends ResponsiveLitElement {
    */
   #onPauseClick() {
     this.dispatchEvent(new Event('controls:pause', { bubbles: true }));
-  }
-
-  /**
-   * Calculates the styles for rendering the waveform
-   *
-   * @private
-   */
-  #computeWaveformStyles() {
-    const styles = computeWaveformStyles(this, defaults.waveform);
-
-    return {
-      ...styles,
-      waveColor: styles.controlsWaveColor || styles.waveColor,
-      waveProgressColor: styles.controlsProgressColor || styles.progressColor,
-    };
   }
 
   /**
