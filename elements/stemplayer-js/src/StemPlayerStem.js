@@ -19,7 +19,6 @@ import HLS from '@firstcoders/hls-web-audio/hls.js';
 import { ResponsiveLitElement } from './ResponsiveLitElement.js';
 import { WaveformHostMixin } from './mixins/WaveformHostMixin.js';
 import gridStyles from './styles/grid.js';
-import rowStyles from './styles/row.js';
 import flexStyles from './styles/flex.js';
 import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
@@ -36,7 +35,6 @@ export class SoundwsStemPlayerStem extends WaveformHostMixin(
   static get styles() {
     return [
       gridStyles,
-      rowStyles,
       flexStyles,
       spacingStyles,
       typographyStyles,
@@ -93,11 +91,6 @@ export class SoundwsStemPlayerStem extends WaveformHostMixin(
        * The wave progress colour
        */
       waveProgressColor: { type: String },
-
-      /**
-       * Used to determine whether the DOM has been initialised
-       */
-      _rowHeight: { state: true },
     };
   }
 
@@ -117,11 +110,6 @@ export class SoundwsStemPlayerStem extends WaveformHostMixin(
     super();
     this.#volume = 1;
     this.solo = 'off';
-  }
-
-  firstUpdated() {
-    // get the _rowHeight so we know the height for the waveform
-    this._rowHeight = this.shadowRoot.firstElementChild.clientHeight;
   }
 
   disconnectedCallback() {
@@ -218,40 +206,36 @@ export class SoundwsStemPlayerStem extends WaveformHostMixin(
    * @private
    */
   #getSmallScreenTpl() {
-    return html`<div class="row">
-      <div class="dFlex flexRow showSm">
-        <div class="w2 flexNoShrink">
-          <soundws-player-button
-            @click=${this.solo === 'on'
-              ? this.#onUnSoloClick
-              : this.#onSoloClick}
-            .title=${this.solo === 'on' ? 'Disable solo' : 'Solo'}
-            .type=${this.solo === 'on' ? 'unsolo' : 'solo'}
-            class=${this.solo === 'on' ? 'bgBrand' : ''}
-          ></soundws-player-button>
-        </div>
-        <div class="w2 flexNoShrink">
-          <soundws-player-button
-            @click=${this.#toggleMute}
-            .title="${this.muted || this.volume === 0 ? 'Unmute' : 'Mute'}"
-            .type="${this.muted || this.volume === 0 ? 'unmute' : 'mute'}"
-          ></soundws-player-button>
-        </div>
-        <soundws-slider
-          .value=${this.volume * 100}
-          label="volume"
-          class="flex1"
-          @change=${e => this.#handleVolume(e.detail / 100)}
-          >${this.label}</soundws-slider
-        >
-        <!-- for calculating combined peaks which should still be emited in events -->
-        <soundws-waveform
-          .src=${this.waveform}
-          .scaleY=${this.volume}
-          style="display: none;"
-        ></soundws-waveform>
+    return html`<stemplayer-js-row>
+      <div class="w2 flexNoShrink">
+        <soundws-player-button
+          @click=${this.solo === 'on' ? this.#onUnSoloClick : this.#onSoloClick}
+          .title=${this.solo === 'on' ? 'Disable solo' : 'Solo'}
+          .type=${this.solo === 'on' ? 'unsolo' : 'solo'}
+          class=${this.solo === 'on' ? 'bgBrand' : ''}
+        ></soundws-player-button>
       </div>
-    </div>`;
+      <div class="w2 flexNoShrink">
+        <soundws-player-button
+          @click=${this.#toggleMute}
+          .title="${this.muted || this.volume === 0 ? 'Unmute' : 'Mute'}"
+          .type="${this.muted || this.volume === 0 ? 'unmute' : 'mute'}"
+        ></soundws-player-button>
+      </div>
+      <soundws-slider
+        .value=${this.volume * 100}
+        label="volume"
+        class="flex1"
+        @change=${e => this.#handleVolume(e.detail / 100)}
+        >${this.label}</soundws-slider
+      >
+      <!-- for calculating combined peaks which should still be emited in events -->
+      <soundws-waveform
+        .src=${this.waveform}
+        .scaleY=${this.volume}
+        style="display: none;"
+      ></soundws-waveform>
+    </stemplayer-js-row>`;
   }
 
   /**

@@ -92,4 +92,17 @@ export default css`
   .noPointerEvents {
     pointer-events: none;
   }
+
+  .hRow {
+    line-height: var(--stemplayer-js-row-height, 4.5rem);
+    height: var(--stemplayer-js-row-height, 4.5rem);
+  }
+
+  .left-2 {
+    left: calc(-1 * var(--stemplayer-js-grid-base, 1.5rem) * 2);
+  }
+
+  .right-2 {
+    right: calc(-1 * var(--stemplayer-js-grid-base, 1.5rem) * 2);
+  }
 `;

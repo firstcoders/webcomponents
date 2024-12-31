@@ -18,7 +18,6 @@ import { html, css } from 'lit';
 import { ResponsiveLitElement } from './ResponsiveLitElement.js';
 import { WaveformHostMixin } from './mixins/WaveformHostMixin.js';
 import gridStyles from './styles/grid.js';
-import rowStyles from './styles/row.js';
 import flexStyles from './styles/flex.js';
 import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
@@ -39,7 +38,6 @@ export class SoundwsStemPlayerControls extends WaveformHostMixin(
   static get styles() {
     return [
       gridStyles,
-      rowStyles,
       flexStyles,
       spacingStyles,
       typographyStyles,
@@ -122,11 +120,6 @@ export class SoundwsStemPlayerControls extends WaveformHostMixin(
     this.controls = ['loop', 'label'];
   }
 
-  firstUpdated() {
-    // get the _rowHeight so we know the height for the waveform
-    this._rowHeight = this.shadowRoot.firstElementChild.clientHeight;
-  }
-
   render() {
     return html`<div>
       ${this.displayMode === 'lg'
@@ -148,7 +141,7 @@ export class SoundwsStemPlayerControls extends WaveformHostMixin(
           .type=${this.isPlaying ? 'pause' : 'play'}
         ></soundws-player-button>
         ${
-          this.isEnabled('loop')
+          this.isControlEnabled('loop')
             ? html`<soundws-player-button
                 class="w2 flexNoShrink ${this.loop ? '' : 'textMuted'}"
                 @click=${this.#toggleLoop}
@@ -159,7 +152,7 @@ export class SoundwsStemPlayerControls extends WaveformHostMixin(
         }
         <div class="flex1">
         ${
-          this.isEnabled('label')
+          this.isControlEnabled('label')
             ? html`<div
                 class="w100 truncate hideXs px4 pr5 textCenter flexNoShrink"
               >
@@ -175,7 +168,7 @@ export class SoundwsStemPlayerControls extends WaveformHostMixin(
         </div>
       </div>
       ${
-        this.isEnabled('waveform') && styles && this.displayMode === 'lg'
+        this.isControlEnabled('waveform') && styles && this.displayMode === 'lg'
           ? html`
               <soundws-waveform
                 slot="flex"
@@ -208,7 +201,7 @@ export class SoundwsStemPlayerControls extends WaveformHostMixin(
   }
 
   #getSmallScreenTpl() {
-    return html`<div class="row dFlex">
+    return html`<stemplayer-js-row>
       <soundws-player-button
         class="w2 flexNoShrink"
         .disabled=${!this.duration}
@@ -245,7 +238,7 @@ export class SoundwsStemPlayerControls extends WaveformHostMixin(
       <div class="w2 op75 textCenter textXs">
         <span class="p2">${formatSeconds(this.duration)}</span>
       </div>
-    </div>`;
+    </stemplayer-js-row>`;
   }
 
   /**
@@ -286,7 +279,7 @@ export class SoundwsStemPlayerControls extends WaveformHostMixin(
     e.target.blur();
   }
 
-  isEnabled(value) {
+  isControlEnabled(value) {
     return this.controls.indexOf(value) !== -1;
   }
 }

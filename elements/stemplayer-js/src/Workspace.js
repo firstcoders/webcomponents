@@ -20,7 +20,6 @@ import { ResponsiveLitElement } from './ResponsiveLitElement.js';
 import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
 import gridStyles from './styles/grid.js';
-import rowStyles from './styles/row.js';
 import backgroundStyles from './styles/backgrounds.js';
 import utilitiesStyles from './styles/utilities.js';
 import formatSeconds from './lib/format-seconds.js';
@@ -56,7 +55,6 @@ export class Workspace extends ResponsiveLitElement {
   static get styles() {
     return [
       gridStyles,
-      rowStyles,
       typographyStyles,
       backgroundStyles,
       spacingStyles,
@@ -179,8 +177,7 @@ export class Workspace extends ResponsiveLitElement {
           ? html`
         <div class="absolute h100 z999 mask dashed regionArea">
           <div
-            class="h100 absolute left w2 z99"
-            style="left: -50px;"
+            class="h100 absolute left w2 z99 left-2"
           >
             <div class="w2 hRow textCenter textXs">
               ${formatSeconds(this.offset)}
@@ -189,8 +186,8 @@ export class Workspace extends ResponsiveLitElement {
           <div class="h100 overflowHidden">
           </div>
           <div
-            class="h100 absolute right w2 z99 top"
-style="right: -50px;"
+            class="h100 absolute right w2 z99 top right-2"
+
           >
             <div class="w2 hRow textCenter textXs">
               ${formatSeconds(this.offset + this.duration)}

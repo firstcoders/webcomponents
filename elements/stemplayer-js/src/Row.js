@@ -17,7 +17,6 @@
 import { html, css } from 'lit';
 import { ResponsiveLitElement } from './ResponsiveLitElement.js';
 import gridStyles from './styles/grid.js';
-import rowStyles from './styles/row.js';
 import flexStyles from './styles/flex.js';
 import spacingStyles from './styles/spacing.js';
 import typographyStyles from './styles/typography.js';
@@ -31,7 +30,6 @@ export class Row extends ResponsiveLitElement {
   static get styles() {
     return [
       gridStyles,
-      rowStyles,
       flexStyles,
       spacingStyles,
       typographyStyles,
@@ -40,6 +38,10 @@ export class Row extends ResponsiveLitElement {
       css`
         :host {
           display: block;
+          position: relative;
+          line-height: var(--stemplayer-js-row-height, 4.5rem);
+          height: var(--stemplayer-js-row-height, 4.5rem);
+          user-select: none;
         }
       `,
     ];
@@ -56,7 +58,7 @@ export class Row extends ResponsiveLitElement {
    */
   // eslint-disable-next-line class-methods-use-this
   #getSmallScreenTpl() {
-    return html`<div class="row"></div>`;
+    return html`<div class="dFlex"><slot></slot></div>`;
   }
 
   /**
@@ -64,7 +66,7 @@ export class Row extends ResponsiveLitElement {
    */
   // eslint-disable-next-line class-methods-use-this
   #getLargeScreenTpl() {
-    return html`<div class="row dFlex">
+    return html`<div class="dFlex">
       <div class="wControls flexNoShrink stickLeft bgPlayer z999">
         <slot name="controls"></slot>
       </div>
